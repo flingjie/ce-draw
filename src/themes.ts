@@ -2,15 +2,20 @@
  * Visual themes for ec-draw.
  *
  * Each theme defines a complete visual identity: colors, stroke width,
- * roughness, roundness, font, and background. Apply a theme to normalize
- * all diagrams to a consistent style.
+ * roughness, roundness, font, and background.
+ *
+ * Themes are compiled from design-tokens/tokens.yaml at runtime.
+ * Hardcoded values serve as fallback when the YAML is unavailable.
  */
 
 import type { ThemeConfig } from "./types.js";
+import { loadThemesFromTokens, getSpacing } from "./token_compiler.js";
 
 export type { ThemeConfig };
 
-const professional: ThemeConfig = {
+// ── Built-in fallback themes ──────────────────────────────────
+
+const _professional: ThemeConfig = {
   name: "professional",
   shapes: [
     ["#2563EB", "#DBEAFE"], // blue
@@ -32,7 +37,7 @@ const professional: ThemeConfig = {
   strokeStyle: "solid",
 };
 
-const sketchy: ThemeConfig = {
+const _sketchy: ThemeConfig = {
   name: "sketchy",
   shapes: [
     ["#1E3A5F", "#B8D4F0"], // slate blue
@@ -54,7 +59,7 @@ const sketchy: ThemeConfig = {
   strokeStyle: "solid",
 };
 
-const dark: ThemeConfig = {
+const _dark: ThemeConfig = {
   name: "dark",
   shapes: [
     ["#60A5FA", "#1E3A5F"], // blue
@@ -76,7 +81,7 @@ const dark: ThemeConfig = {
   strokeStyle: "solid",
 };
 
-const colorful: ThemeConfig = {
+const _colorful: ThemeConfig = {
   name: "colorful",
   shapes: [
     ["#E03131", "#FFC9C9"], // red
@@ -98,12 +103,27 @@ const colorful: ThemeConfig = {
   strokeStyle: "solid",
 };
 
-export const THEMES: Record<string, ThemeConfig> = {
-  professional,
-  sketchy,
-  dark,
-  colorful,
-};
+// ── Theme registry (token-compiled with built-in fallback) ──
+
+let _themes: Record<string, ThemeConfig> | null = null;
+
+function _loadThemes(): Record<string, ThemeConfig> {
+  if (_themes) return _themes;
+  try {
+    _themes = loadThemesFromTokens();
+  } catch {
+    // Fall back to built-in when design-tokens/ not available
+    _themes = {
+      professional: _professional,
+      sketchy: _sketchy,
+      dark: _dark,
+      colorful: _colorful,
+    };
+  }
+  return _themes;
+}
+
+export const THEMES: Record<string, ThemeConfig> = _loadThemes();
 
 export function getTheme(name: string): ThemeConfig {
   const theme = THEMES[name.toLowerCase().trim()];

@@ -64,11 +64,32 @@ Read from `templates/` for pattern guidance per diagram type:
 - `templates/er.md` — entity-relationship diagrams, data models
 - `templates/whiteboard.md` — freeform sketches, brainstorms, comparisons
 
-## Icon Library
+## Built-in Icons
 
-From `library/icons.json`: `database`, `server`, `cloud`, `user`, `gear`, `document`, `globe`, `mobile`, `lock`, `fire`.
+From `library/icons.json`: `database`, `server`, `cloud`, `user`, `gear`, `document`, `globe`, `mobile`, `lock`, `fire`, `message_queue`, `firewall`, `scissors`, `brain`, `tag`, `embed`, `cluster`.
 
 Use via Diagram API: `d.addIcon("database", 200, 100, 0)`.
+
+## External Icon Libraries
+
+Five `.excalidrawlib` files in `library/` provide reusable element presets:
+
+| Library | Items | Naming | Usage Pattern |
+|---------|-------|--------|---------------|
+| `google-icons` | 139 | Named (e.g. "Compute Engine") | `d.addLibraryIcon("google-icons", "Compute Engine", x, y)` |
+| `stick-figures` | 9 | Named (e.g. "Stick man") | `d.addLibraryIcon("stick-figures", "Stick man", x, y)` |
+| `stick-people` | 7 | Named (e.g. "Stick man standard looking left") | `d.addLibraryIcon("stick-people", "Stick man standard looking left", x, y)` |
+| `awesome-icons` | 24 | Anonymous (`awesome-icons:0`-`:23`) | `d.addLibraryIcon("awesome-icons", "awesome-icons:0", x, y)` |
+| `software-architecture` | 7 | Anonymous (`software-architecture:0`-`:6`) | `d.addLibraryIcon("software-architecture", "software-architecture:0", x, y)` |
+
+To list icons within a library:
+```ts
+import { listLibrary, listLibraries } from "ec-draw";
+console.log(listLibraries());          // all available libraries
+console.log(listLibrary("google-icons")); // all icon names in that library
+```
+
+Placement works automatically: icons are repositioned so their bounding-box origin lands at (x, y).
 
 ## Tips
 

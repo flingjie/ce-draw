@@ -313,5 +313,26 @@
     {"type":"ellipse","width":40,"height":40,"fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":null},
     {"type":"ellipse","width":20,"height":30,"fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":null},
     {"type":"ellipse","width":10,"height":15,"fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":null}
+  ],
+  "scissors": [
+    {"type":"ellipse","width":22,"height":20,"fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":null,"angle":-0.3},
+    {"type":"ellipse","width":22,"height":20,"fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":null,"angle":0.3},
+    {"type":"rectangle","width":30,"height":8,"fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":null}
+  ],
+  "brain": [
+    {"type":"ellipse","width":55,"height":40,"fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":null},
+    {"type":"line","width":0,"height":34,"points":[{"x":0,"y":0},{"x":0,"y":34}],"strokeWidth":1,"roughness":1,"roundness":null,"strokeStyle":"dashed"}
+  ],
+  "tag": [
+    {"type":"line","width":60,"height":45,"points":[{"x":0,"y":0},{"x":35,"y":0},{"x":60,"y":22},{"x":35,"y":45},{"x":0,"y":45},{"x":0,"y":0}],"fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":null}
+  ],
+  "embed": [
+    {"type":"rectangle","width":60,"height":45,"fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":{"type":1}},
+    {"type":"line","width":12,"height":17,"points":[{"x":0,"y":0},{"x":12,"y":8},{"x":0,"y":17}],"fillStyle":"solid","strokeWidth":1,"roughness":1,"roundness":null}
+  ],
+  "cluster": [
+    {"type":"ellipse","width":35,"height":30,"fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":null},
+    {"type":"ellipse","width":35,"height":30,"fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":null},
+    {"type":"ellipse","width":35,"height":30,"fillStyle":"solid","strokeWidth":2,"roughness":1,"roundness":null}
   ]
 }

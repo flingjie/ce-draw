@@ -17,7 +17,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "start": "node dist/cli.js"
+    "start": "node dist/cli.js",
+    "test": "bash tests/run_golden.sh"
   },
   "dependencies": {
     "dagre": "^0.8.5"

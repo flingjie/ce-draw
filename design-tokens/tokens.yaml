@@ -1,0 +1,138 @@
+# ec-draw Design Tokens — single source of truth for visual values.
+# Flat structure: no nested blocks beyond one level of indentation.
+#
+# Layers:
+#   colors — palette definitions with semantic variants
+#   shapes — per-theme shape color cycling
+#   spacing — margin/padding/gap tokens
+#   typography — font family IDs and sizes
+#   stroke — stroke width, roughness, roundness, style
+#   shadow — elevation tokens (for SVG export)
+
+# ── Colors ─────────────────────────────────────────────────────
+
+colors:
+  # Base palettes
+  blue:     ["#2563EB","#DBEAFE"]
+  green:    ["#059669","#D1FAE5"]
+  purple:   ["#7C3AED","#EDE9FE"]
+  red:      ["#DC2626","#FEE2E2"]
+  amber:    ["#D97706","#FEF3C7"]
+
+  slate:    ["#1E3A5F","#B8D4F0"]
+  moss:     ["#2D5A27","#C5E8C0"]
+  mauve:    ["#6B3A5B","#F0D5E5"]
+  brown:    ["#8B4513","#F5D5B8"]
+  taupe:    ["#4A3728","#E8D5C0"]
+
+  neon_blue:   ["#60A5FA","#1E3A5F"]
+  neon_green:  ["#34D399","#064E3B"]
+  neon_purple: ["#A78BFA","#4C1D95"]
+  neon_red:    ["#F87171","#7F1D1D"]
+  neon_amber:  ["#FBBF24","#78350F"]
+
+  bright_red:    ["#E03131","#FFC9C9"]
+  bright_orange: ["#E8590C","#FFD8A8"]
+  bright_yellow: ["#FCC419","#FFF3BF"]
+  bright_green:  ["#2F9E44","#B2F2BB"]
+  bright_blue:   ["#1C7ED6","#A5D8FF"]
+
+  # Semantic colors per theme
+  arrow_professional:   "#6B7280"
+  arrow_sketchy:        "#5A5A5A"
+  arrow_dark:           "#9CA3AF"
+  arrow_colorful:       "#495057"
+
+  text_professional:    "#1F2937"
+  text_sketchy:         "#2C2C2C"
+  text_dark:            "#F3F4F6"
+  text_colorful:        "#212529"
+
+  accent_professional:  "#2563EB"
+  accent_sketchy:       "#1E3A5F"
+  accent_dark:          "#60A5FA"
+  accent_colorful:      "#E03131"
+
+  bg_professional:      "#FFFFFF"
+  bg_sketchy:           "#F8F5F0"
+  bg_dark:              "#111827"
+  bg_colorful:          "#FFFBEB"
+
+# ── Shape Palettes ─────────────────────────────────────────────
+
+shapes:
+  professional: [blue, green, purple, red, amber]
+  sketchy:      [slate, moss, mauve, brown, taupe]
+  dark:         [neon_blue, neon_green, neon_purple, neon_red, neon_amber]
+  colorful:     [bright_red, bright_orange, bright_yellow, bright_green, bright_blue]
+
+# ── Spacing Tokens ─────────────────────────────────────────────
+
+spacing:
+  margin: 120
+  node_pad_x: 32
+  node_pad_y: 24
+  nodesep: 60
+  ranksep: 70
+  edgesep: 30
+  marginx: 40
+  marginy: 40
+
+# ── Typography Tokens ──────────────────────────────────────────
+
+typography:
+  font_family_virgil: 1
+  font_family_helvetica: 2
+  font_family_cascadia: 3
+  font_size_default: 16
+  font_size_small: 12
+  font_size_label: 14
+  line_height: 1.25
+  line_height_dagre: 1.4
+
+# ── Stroke Tokens ──────────────────────────────────────────────
+
+stroke_width:
+  thin: 1
+  default: 2
+  thick: 3
+
+stroke_roughness:
+  crisp: 0
+  slight: 1
+  sketchy: 2
+
+stroke_roundness:
+  none: null
+  subtle: 1
+  medium: 2
+  full: 3
+
+stroke_style:
+  solid: solid
+  dashed: dashed
+  dotted: dotted
+
+# ── Shadow Tokens (for SVG export) ─────────────────────────────
+
+shadow:
+  # none — no shadow
+  none_enabled: false
+  # subtle — light depth
+  subtle_enabled: true
+  subtle_offset_x: 2
+  subtle_offset_y: 2
+  subtle_blur: 4
+  subtle_color: "rgba(0,0,0,0.1)"
+  # medium — moderate depth
+  medium_enabled: true
+  medium_offset_x: 4
+  medium_offset_y: 4
+  medium_blur: 8
+  medium_color: "rgba(0,0,0,0.15)"
+  # strong — pronounced depth
+  strong_enabled: true
+  strong_offset_x: 6
+  strong_offset_y: 6
+  strong_blur: 12
+  strong_color: "rgba(0,0,0,0.2)"

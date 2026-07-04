@@ -6,6 +6,9 @@
 
 import type { ExcalidrawElement } from "./types.js";
 import { createElement } from "./normalize.js";
+import { readFileSync, existsSync, readdirSync } from "fs";
+import { resolve, dirname, basename } from "path";
+import { fileURLToPath } from "url";
 
 export interface IconDef {
   /** Build icon elements at the given position with given colors. */
@@ -152,4 +155,95 @@ export const ICONS: Record<string, IconDef> = {
 
 export function listIcons(): string[] {
   return Object.keys(ICONS);
+}
+
+// ── External Library Loader (.excalidrawlib) ──────────────────
+
+interface LibItem {
+  id: string;
+  status: string;
+  name?: string;
+  elements: ExcalidrawElement[];
+}
+
+interface LibFile {
+  type: "excalidrawlib";
+  version: 2;
+  source: string;
+  libraryItems: LibItem[];
+}
+
+let _libraries: Map<string, LibFile> | null = null;
+
+function _findLibDir(): string {
+  for (const p of [
+    resolve(process.cwd(), "library"),
+    resolve(dirname(fileURLToPath(import.meta.url)), "../library"),
+    resolve(dirname(fileURLToPath(import.meta.url)), "../../library"),
+  ]) { if (existsSync(p)) return p; }
+  throw new Error("library/ directory not found");
+}
+
+function _loadAllLibraries(): Map<string, LibFile> {
+  if (_libraries) return _libraries;
+  _libraries = new Map();
+  const dir = _findLibDir();
+  for (const f of readdirSync(dir)) {
+    if (!f.endsWith(".excalidrawlib")) continue;
+    _libraries.set(basename(f, ".excalidrawlib"),
+      JSON.parse(readFileSync(resolve(dir, f), "utf-8")) as LibFile);
+  }
+  // Normalize: some files use "library" (array of element arrays)
+  // instead of "libraryItems" (array of {id, elements})
+  for (const [name, lib] of _libraries) {
+    if (!lib.libraryItems && (lib as any).library) {
+      lib.libraryItems = (lib as any).library.map((elements: any[], i: number) => ({
+        id: elements[0]?.id || crypto.randomUUID(),
+        status: "published",
+        name: `${name}:${i}`,
+        elements: Array.isArray(elements) ? elements : [elements],
+      }));
+    }
+  }
+  return _libraries;
+}
+
+export function listLibraries(): string[] {
+  return [..._loadAllLibraries().keys()];
+}
+
+export function listLibrary(name: string): string[] {
+  const lib = _loadAllLibraries().get(name);
+  if (!lib) throw new Error(`Library "${name}" not found. Available: ${listLibraries().join(", ")}`);
+  return lib.libraryItems.map((item, i) => item.name || `${name}:${i}`);
+}
+
+export function loadLibraryIcon(
+  libraryName: string, iconName: string,
+  x: number, y: number,
+  opts?: { stroke?: string; bg?: string; scale?: number }
+): ExcalidrawElement[] {
+  const lib = _loadAllLibraries().get(libraryName);
+  if (!lib) throw new Error(`Library "${libraryName}" not found`);
+
+  let item: LibItem | undefined;
+  if (iconName.startsWith(`${libraryName}:`)) {
+    item = lib.libraryItems[parseInt(iconName.split(":")[1], 10)];
+  } else {
+    item = lib.libraryItems.find(i => i.name === iconName);
+  }
+  if (!item) throw new Error(`Icon "${iconName}" not found in "${libraryName}"`);
+
+  let minX = Infinity, minY = Infinity;
+  for (const el of item.elements) { minX = Math.min(minX, el.x); minY = Math.min(minY, el.y); }
+
+  const s = opts?.scale ?? 1;
+  return item.elements.map(el => ({
+    ...el, id: crypto.randomUUID(),
+    x: x + (el.x - minX) * s, y: y + (el.y - minY) * s,
+    width: el.width * s, height: el.height * s,
+    strokeColor: opts?.stroke || el.strokeColor,
+    backgroundColor: opts?.bg || el.backgroundColor,
+    seed: Math.floor(Math.random() * 0x7fffffff),
+  })) as ExcalidrawElement[];
 }

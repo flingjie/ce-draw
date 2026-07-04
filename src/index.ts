@@ -23,7 +23,7 @@ export { mermaidToExcalidraw } from "./mermaid.js";
 export { Diagram } from "./diagram.js";
 export { getTheme, listThemes, THEMES } from "./themes.js";
 export { normalize, normalizeElement, makeId } from "./normalize.js";
-export { ICONS, listIcons } from "./library.js";
+export { ICONS, listIcons, loadLibraryIcon, listLibrary, listLibraries } from "./library.js";
 export type { IconDef } from "./library.js";
 export type {
   ExcalidrawElement,

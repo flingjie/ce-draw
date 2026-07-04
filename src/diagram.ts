@@ -12,7 +12,7 @@ import { resolve } from "path";
 import type { ExcalidrawElement, ExcalidrawDocument, ShapeType } from "./types.js";
 import { getTheme, type ThemeConfig } from "./themes.js";
 import { normalizeElement, createElement, createTextElement, buildAppState, textWidth } from "./normalize.js";
-import { ICONS } from "./library.js";
+import { ICONS, loadLibraryIcon } from "./library.js";
 
 export interface BoxOptions {
   row?: number;
@@ -215,6 +215,35 @@ export class Diagram {
     for (const el of elements) {
       this.elements.push(normalizeElement(el, this.theme, colorIndex));
     }
+  }
+
+  /** Place an icon from an external .excalidrawlib file at a position. */
+  addLibraryIcon(
+    libraryName: string,
+    iconName: string,
+    x: number,
+    y: number,
+    colorIndex: number = 0
+  ): void {
+    const [stroke, bg] = this.theme.shapes[colorIndex % this.theme.shapes.length];
+    const elements = loadLibraryIcon(libraryName, iconName, x, y, { stroke, bg });
+    for (const el of elements) {
+      this.elements.push(normalizeElement(el, this.theme, colorIndex));
+    }
+  }
+
+  /** Add a sequence diagram actor using stick figure from library. */
+  addActor(
+    name: string,
+    x: number,
+    y: number,
+    libraryName: string = "stick-figures",
+    iconName: string = "Stick man"
+  ): void {
+    this.addLibraryIcon(libraryName, iconName, x, y, 0);
+    this.addText(name,
+      x + 30 - textWidth(name, this.theme.fontSize) / 2,
+      y + 80, this.theme.fontSize);
   }
 
   /** Convert to a plain object (for JSON serialization). */

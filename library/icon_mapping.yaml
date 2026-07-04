@@ -1,0 +1,74 @@
+# Icon mapping — canonical icon names → aliases and categories.
+# Used by resolveIcon() to match node labels to icon renderings.
+#
+# Each entry maps a canonical icon name to:
+#   aliases: alternative names that resolve to this icon
+#   keywords: semantic keywords for fuzzy matching
+
+database:
+  aliases: [db, datastore, storage, rds, mysql, postgresql, postgres, sql, redis, memcached, elasticache]
+  keywords: [database, data, store, persist, cache]
+
+server:
+  aliases: [service, backend, api-server, instance, node]
+  keywords: [server, compute, host]
+
+cloud:
+  aliases: [cdn, internet, external]
+  keywords: [cloud, internet, external, network]
+
+user:
+  aliases: [users, customer, client, person, account]
+  keywords: [user, person, human, customer]
+
+gear:
+  aliases: [settings, config, configuration, engine, processor]
+  keywords: [gear, setting, config, process]
+
+document:
+  aliases: [file, files, doc, page, pages]
+  keywords: [document, file, page]
+
+globe:
+  aliases: [web, world, internet, public]
+  keywords: [globe, world, web, global]
+
+mobile:
+  aliases: [phone, app, client-app, ios, android]
+  keywords: [mobile, phone, app, device]
+
+lock:
+  aliases: [auth, security, authentication, secure, ssl, tls]
+  keywords: [lock, secure, auth, security]
+
+fire:
+  aliases: [hot, alert, critical, warning, urgent]
+  keywords: [fire, hot, alert, critical]
+
+message_queue:
+  aliases: [queue, mq, kafka, rabbitmq, sqs, pubsub, event-bus, broker]
+  keywords: [queue, message, event, stream]
+
+firewall:
+  aliases: [waf, security-group, sg, guard]
+  keywords: [firewall, filter, security, protect]
+
+scissors:
+  aliases: [cut, split, divide]
+  keywords: [scissors, cut, split]
+
+brain:
+  aliases: [ai, ml, model, intelligence, inference, llm, gpt]
+  keywords: [brain, ai, ml, intelligence, model]
+
+tag:
+  aliases: [label, category, badge, marker]
+  keywords: [tag, label, badge, category]
+
+embed:
+  aliases: [iframe, widget, media, video, player]
+  keywords: [embed, widget, media, frame]
+
+cluster:
+  aliases: [group, pool, fleet, replicaset, nodes, instances]
+  keywords: [cluster, group, pool, fleet]

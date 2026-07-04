@@ -16,6 +16,9 @@ import {
   buildAppState,
   textWidth,
 } from "./normalize.js";
+import { resolveIcon, resolveIconName } from "./icon_resolver.js";
+import { ICONS } from "./library.js";
+import { getSpacing } from "./token_compiler.js";
 
 // ── Types ──────────────────────────────────────────────────────
 
@@ -201,14 +204,26 @@ function parseMermaid(text: string): ParsedDiagram {
 
 // ── Dagre Layout ───────────────────────────────────────────────
 
-function runDagreLayout(nodes: ParsedNode[], edges: ParsedEdge[], direction: Direction = "TB") {
+function runDagreLayout(nodes: ParsedNode[], edges: ParsedEdge[], direction: Direction = "TB", fontSize: number = 16) {
+  const sp = getSpacing();
   const g = new dagre.graphlib.Graph({ multigraph: true });
-  g.setGraph({ rankdir: direction, nodesep: 60, ranksep: 70, edgesep: 30, marginx: 40, marginy: 40 });
+  g.setGraph({
+    rankdir: direction,
+    nodesep: sp.nodeSep,
+    ranksep: sp.rankSep,
+    edgesep: sp.edgeSep,
+    marginx: sp.marginX,
+    marginy: sp.marginY,
+  });
   g.setDefaultEdgeLabel(() => ({}));
 
   for (const n of nodes) {
-    const w = n.shape === "diamond" ? 140 : 150;
-    const h = n.shape === "diamond" ? 90 : 65;
+    // Size node to fit label text, using spacing tokens for padding
+    const lineHeight = fontSize * 1.4;
+    const lines = n.label.split("\n");
+    const maxLineW = Math.max(...lines.map(l => textWidth(l, fontSize)));
+    const w = Math.max(maxLineW + sp.nodePadX, n.shape === "diamond" ? 100 : 80);
+    const h = Math.max(lines.length * lineHeight + sp.nodePadY, n.shape === "diamond" ? 70 : 50);
     g.setNode(n.id, { label: n.label, width: w, height: h });
   }
   for (const e of edges) g.setEdge(e.from, e.to, {});
@@ -349,7 +364,7 @@ export function mermaidToExcalidraw(
   }
 
   const direction = parsed.direction ?? "TB";
-  const positions = runDagreLayout(parsed.nodes, parsed.edges, direction);
+  const positions = runDagreLayout(parsed.nodes, parsed.edges, direction, theme.fontSize);
 
   const elements: ExcalidrawElement[] = [];
   let colorIdx = 0;
@@ -472,6 +487,54 @@ export function mermaidToExcalidraw(
       const tp = positions.get(edge.to);
       if (!fp || !tp) continue;
       elements.push(...buildArrow(edge, fp, tp, direction, theme));
+    }
+  }
+
+  // 8. Icon resolution — replace shapes whose label matches an icon
+  for (const node of parsed.nodes) {
+    const iconName = resolveIconName(node.label);
+    if (!iconName || !ICONS[iconName]) continue;
+
+    const shapeIdx = elements.findIndex(
+      e => ["rectangle","ellipse","diamond"].includes(e.type) &&
+           e.boundElements?.some(b => {
+             const t = elements.find(x => x.id === b.id) as any;
+             return t?.text === node.label;
+           })
+    );
+    if (shapeIdx === -1) continue;
+
+    const shapeEl = elements[shapeIdx];
+    const pos = positions.get(node.id);
+    if (!pos) continue;
+
+    const boundIds = new Set((shapeEl.boundElements || []).map((b: any) => b.id));
+    elements.splice(shapeIdx, 1);
+    for (let i = elements.length - 1; i >= 0; i--) {
+      if (boundIds.has(elements[i].id)) elements.splice(i, 1);
+    }
+
+    const [stroke, bg] = theme.shapes[colorIdx % theme.shapes.length];
+    colorIdx++;
+    const iconEls = resolveIcon(iconName, pos.x, pos.y, themeName, colorIdx);
+    if (iconEls) elements.push(...iconEls);
+  }
+
+  // 9. Ensure minimum viewport margins (120px per design tokens)
+  const spacing = getSpacing();
+  if (elements.length > 0) {
+    let minX = Infinity, minY = Infinity;
+    for (const el of elements) {
+      minX = Math.min(minX, el.x);
+      minY = Math.min(minY, el.y);
+    }
+    const dx = spacing.margin - minX;
+    const dy = spacing.margin - minY;
+    if (dx > 0 || dy > 0) {
+      for (const el of elements) {
+        if (dx > 0) el.x += dx;
+        if (dy > 0) el.y += dy;
+      }
     }
   }
 
