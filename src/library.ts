@@ -37,7 +37,7 @@ export const ICONS: Record<string, IconDef> = {
         y: y + 5,
         width: w,
         height: 0,
-        points: [{ x: 0, y: 0 }, { x: w, y: 0 }],
+        points: [[0, 0], [w, 0]],
         strokeColor: s,
       }),
       createElement("line", {
@@ -45,7 +45,7 @@ export const ICONS: Record<string, IconDef> = {
         y: y + 55,
         width: w,
         height: 0,
-        points: [{ x: 0, y: 0 }, { x: w, y: 0 }],
+        points: [[0, 0], [w, 0]],
         strokeColor: s,
       }),
       createElement("ellipse", { x, y, width: w, height: 30, strokeColor: s, backgroundColor: b }),
@@ -87,9 +87,9 @@ export const ICONS: Record<string, IconDef> = {
     const w = 60;
     return [
       createElement("rectangle", { x, y, width: w, height: 80, strokeColor: s, backgroundColor: b, roundness: { type: 1 } }),
-      createElement("line", { x: x + 10, y: y + 20, width: 40, height: 0, points: [{ x: 0, y: 0 }, { x: 40, y: 0 }], strokeColor: s, strokeWidth: 1 }),
-      createElement("line", { x: x + 10, y: y + 35, width: 35, height: 0, points: [{ x: 0, y: 0 }, { x: 35, y: 0 }], strokeColor: s, strokeWidth: 1 }),
-      createElement("line", { x: x + 10, y: y + 50, width: 30, height: 0, points: [{ x: 0, y: 0 }, { x: 30, y: 0 }], strokeColor: s, strokeWidth: 1 }),
+      createElement("line", { x: x + 10, y: y + 20, width: 40, height: 0, points: [[0, 0], [40, 0]], strokeColor: s, strokeWidth: 1 }),
+      createElement("line", { x: x + 10, y: y + 35, width: 35, height: 0, points: [[0, 0], [35, 0]], strokeColor: s, strokeWidth: 1 }),
+      createElement("line", { x: x + 10, y: y + 50, width: 30, height: 0, points: [[0, 0], [30, 0]], strokeColor: s, strokeWidth: 1 }),
     ];
   }),
 
@@ -97,7 +97,7 @@ export const ICONS: Record<string, IconDef> = {
     return [
       createElement("ellipse", { x, y, width: 70, height: 70, strokeColor: s, backgroundColor: b }),
       createElement("ellipse", { x: x + 30, y, width: 10, height: 70, strokeColor: s, fillStyle: "hachure", strokeWidth: 1 }),
-      createElement("line", { x, y: y + 35, width: 70, height: 0, points: [{ x: 0, y: 0 }, { x: 70, y: 0 }], strokeColor: s, strokeWidth: 1 }),
+      createElement("line", { x, y: y + 35, width: 70, height: 0, points: [[0, 0], [70, 0]], strokeColor: s, strokeWidth: 1 }),
     ];
   }),
 
@@ -117,8 +117,8 @@ export const ICONS: Record<string, IconDef> = {
         width: 26,
         height: 0,
         points: [
-          { x: 0, y: 15 },
-          { x: 26, y: 15 },
+          [0, 15],
+          [26, 15],
         ],
         strokeColor: s,
         strokeWidth: 3,
@@ -138,9 +138,9 @@ export const ICONS: Record<string, IconDef> = {
     const w = 100;
     return [
       createElement("rectangle", { x, y, width: w, height: 50, strokeColor: s, backgroundColor: b, roundness: { type: 2 } }),
-      createElement("line", { x: x + 10, y: y + 15, width: w - 20, height: 0, points: [{x:0,y:0},{x:w-20,y:0}], strokeColor: s, strokeWidth: 1, strokeStyle: "dashed" }),
-      createElement("line", { x: x + 10, y: y + 27, width: w - 20, height: 0, points: [{x:0,y:0},{x:w-20,y:0}], strokeColor: s, strokeWidth: 1, strokeStyle: "dashed" }),
-      createElement("line", { x: x + 10, y: y + 39, width: w - 20, height: 0, points: [{x:0,y:0},{x:w-20,y:0}], strokeColor: s, strokeWidth: 1, strokeStyle: "dashed" }),
+      createElement("line", { x: x + 10, y: y + 15, width: w - 20, height: 0, points: [[0,0],[w-20,0]], strokeColor: s, strokeWidth: 1, strokeStyle: "dashed" }),
+      createElement("line", { x: x + 10, y: y + 27, width: w - 20, height: 0, points: [[0,0],[w-20,0]], strokeColor: s, strokeWidth: 1, strokeStyle: "dashed" }),
+      createElement("line", { x: x + 10, y: y + 39, width: w - 20, height: 0, points: [[0,0],[w-20,0]], strokeColor: s, strokeWidth: 1, strokeStyle: "dashed" }),
     ];
   }),
 
@@ -148,7 +148,7 @@ export const ICONS: Record<string, IconDef> = {
     return [
       createElement("rectangle", { x, y, width: 13, height: 80, strokeColor: s, backgroundColor: b, strokeWidth: 3, roughness: 0 }),
       createElement("rectangle", { x: x + 27, y, width: 13, height: 80, strokeColor: s, backgroundColor: b, strokeWidth: 3, roughness: 0 }),
-      createElement("line", { x: x + 20, y: y + 10, width: 0, height: 60, points: [{x:0,y:0},{x:0,y:60}], strokeColor: s, strokeWidth: 1, strokeStyle: "dashed" }),
+      createElement("line", { x: x + 20, y: y + 10, width: 0, height: 60, points: [[0,0],[0,60]], strokeColor: s, strokeWidth: 1, strokeStyle: "dashed" }),
     ];
   }),
 };

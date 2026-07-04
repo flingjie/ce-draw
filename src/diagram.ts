@@ -150,7 +150,7 @@ export class Diagram {
       this.theme,
       0
     ) as any;
-    el.points = [{ x: 0, y: 0 }, { x: dx, y: dy }];
+    el.points = [[0, 0], [dx, dy]];
     el.startArrowhead = null;
     el.endArrowhead = "arrow";
     el.startBinding = null;

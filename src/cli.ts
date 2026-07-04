@@ -28,7 +28,7 @@ Usage:
   ec-draw --list-icons
 
 Options:
-  -o, --output <path>    Output file (default: diagram.excalidraw)
+  -o, --output <path>    Output file (default: /Users/lingjiefan/Downloads/output.excalidraw)
   -t, --theme <name>     Theme: sketchy, professional, dark, colorful (default: sketchy)
   -h, --help             Show this help
 
@@ -54,7 +54,7 @@ Examples:
   }
 
   // Parse options
-  let outputPath = "diagram.excalidraw";
+  let outputPath = "/Users/lingjiefan/Downloads/output.excalidraw";
   let themeName = "sketchy";
 
   const outputIdx = args.indexOf("-o") !== -1 ? args.indexOf("-o") : args.indexOf("--output");

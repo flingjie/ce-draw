@@ -187,7 +187,7 @@ export function DataStore(
     roughness: theme.roughness, roundness: null,
   }) as any;
   // Body should be two vertical lines (left and right edges)
-  body.points = [{ x: 0, y: 0 }, { x: 0, y: h - elH }];
+  body.points = [[0, 0], [0, h - elH]];
 
   // Use a rectangle for the body instead — simpler
   const bodyRect = createElement("rectangle", {
@@ -202,14 +202,14 @@ export function DataStore(
     strokeColor: stroke, strokeWidth: theme.strokeWidth,
     roughness: theme.roughness, roundness: null,
   });
-  (leftLine as any).points = [{ x: 0, y: 0 }, { x: 0, y: h - elH }];
+  (leftLine as any).points = [[0, 0], [0, h - elH]];
 
   const rightLine = createElement("line", {
     x: x + w, y: y + elH / 2, width: 0, height: h - elH,
     strokeColor: stroke, strokeWidth: theme.strokeWidth,
     roughness: theme.roughness, roundness: null,
   });
-  (rightLine as any).points = [{ x: 0, y: 0 }, { x: 0, y: h - elH }];
+  (rightLine as any).points = [[0, 0], [0, h - elH]];
 
   const bottom = createElement("ellipse", {
     x, y: y + h - elH, width: w, height: elH,

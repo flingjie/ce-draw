@@ -253,9 +253,9 @@ function buildArrow(
   const arrowEl = createElement("arrow", {
     x: fx, y: fy, width: dx, height: dy,
     strokeColor: theme.arrow,
-    roundness: null,
+    roundness: { type: 2 },
   }) as any;
-  arrowEl.points = [{ x: 0, y: 0 }, { x: dx, y: dy }];
+  arrowEl.points = [[0, 0], [dx, dy]];
   arrowEl.startArrowhead = null;
   arrowEl.endArrowhead = "arrow";
   arrowEl.startBinding = null;
@@ -396,7 +396,7 @@ export function mermaidToExcalidraw(
         x: fcx, y: msgY, width: dx, height: 0,
         strokeColor: theme.arrow, roundness: null,
       }) as any;
-      arr.points = [{ x: 0, y: 0 }, { x: dx, y: 0 }];
+      arr.points = [[0, 0], [dx, 0]];
       arr.startArrowhead = null;
       arr.endArrowhead = "arrow";
 

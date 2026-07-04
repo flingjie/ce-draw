@@ -3,10 +3,8 @@
  * Reference: @excalidraw/excalidraw/element/types.ts
  */
 
-export interface Point {
-  x: number;
-  y: number;
-}
+/** Excalidraw uses [number, number] tuples for points, not {x,y} objects. */
+export type Point = [number, number];
 
 export type Direction = "TB" | "LR" | "RL" | "BT";
 
@@ -53,7 +51,6 @@ export interface ExcalidrawElement {
   roundness: Roundness | null;
   boundElements: BoundElement[] | null;
   locked: boolean;
-  strokeSharpness: "round" | "sharp";
   isDeleted: boolean;
   link: string | null;
   updated: number;

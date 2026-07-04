@@ -68,7 +68,6 @@ export function createElement(
     roundness: null,
     boundElements: null,
     locked: false,
-    strokeSharpness: "round",
     isDeleted: false,
     link: null,
     updated: 0,
@@ -105,6 +104,8 @@ export function createTextElement(
     originalText: content,
     strokeColor: "#1F2937",
     strokeWidth: 1,
+    boundElements: [],
+    roundness: { type: 2 },
   });
 }
 
@@ -140,7 +141,6 @@ export function normalizeElement(
     strokeStyle: theme.strokeStyle,
     roughness: theme.roughness,
     opacity: 100,
-    strokeSharpness: "round" as const,
     seed: hashSeed(el.id),
   };
 
@@ -152,14 +152,14 @@ export function normalizeElement(
 
     case "arrow":
     case "line":
-      return { ...base, strokeColor: theme.arrow, backgroundColor: "transparent", roundness: null };
+      return { ...base, strokeColor: theme.arrow, backgroundColor: "transparent", roundness: { type: 2 } };
 
     case "text":
       return {
         ...base,
         strokeColor: theme.text,
         backgroundColor: "transparent",
-        roundness: null,
+        roundness: { type: 2 },
         strokeWidth: 1,
         ...("fontFamily" in el ? { fontFamily: theme.fontFamily } : {}),
         ...("fontSize" in el ? { fontSize: theme.fontSize } : {}),
@@ -171,7 +171,7 @@ export function normalizeElement(
         strokeColor: theme.accent,
         backgroundColor: "transparent",
         strokeStyle: "dashed",
-        roundness: null,
+        roundness: { type: 2 },
       };
 
     default:
