@@ -14,6 +14,20 @@ export function makeId(): string {
   return crypto.randomUUID();
 }
 
+/**
+ * Compute a deterministic seed from an element ID via djb2 hash.
+ * Replaces Math.random() — same ID → same seed → same roughness
+ * jitter in Excalidraw. This makes golden tests reproducible.
+ */
+function hashSeed(id: string): number {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = ((hash << 5) - hash) + id.charCodeAt(i);
+    hash |= 0; // 32-bit integer
+  }
+  return Math.abs(hash) % 0x7fffffff;
+}
+
 /** Estimate text display width. 0.6× for ASCII, 1.0× for CJK/emoji. */
 export function textWidth(content: string, fontSize: number): number {
   let width = 0;
@@ -37,8 +51,9 @@ export function createElement(
   type: string,
   overrides: Record<string, any> = {}
 ): ExcalidrawElement {
+  const id = overrides.id ?? makeId();
   return {
-    id: makeId(),
+    id,
     type,
     x: 0, y: 0, width: 0, height: 0,
     angle: 0,
@@ -57,7 +72,7 @@ export function createElement(
     isDeleted: false,
     link: null,
     updated: 0,
-    seed: Math.floor(Math.random() * 0x7fffffff),
+    seed: hashSeed(id),
     version: 2,
     versionNonce: 0,
     frameId: null,
@@ -126,7 +141,7 @@ export function normalizeElement(
     roughness: theme.roughness,
     opacity: 100,
     strokeSharpness: "round" as const,
-    seed: Math.floor(Math.random() * 0x7fffffff),
+    seed: hashSeed(el.id),
   };
 
   switch (el.type) {
