@@ -11,8 +11,8 @@ import { writeFileSync } from "fs";
 import { resolve } from "path";
 import type { ExcalidrawElement, ExcalidrawDocument, ShapeType } from "./types.js";
 import { getTheme, type ThemeConfig } from "./themes.js";
-import { normalizeElement, makeId } from "./normalize.js";
-import { ICONS, type IconDef } from "./library.js";
+import { normalizeElement, createElement, createTextElement, buildAppState } from "./normalize.js";
+import { ICONS } from "./library.js";
 
 export interface BoxOptions {
   row?: number;
@@ -86,32 +86,15 @@ export class Diagram {
     this._colorIdx++;
 
     const el = normalizeElement(
-      {
-        id: makeId(),
-        type: shape,
-        x, y,
-        width: w, height: h,
-        angle: 0,
-        strokeColor: stroke,
-        backgroundColor: bg,
+      createElement(shape, {
+        x, y, width: w, height: h,
+        strokeColor: stroke, backgroundColor: bg,
         fillStyle: this.theme.fillStyle,
         strokeWidth: this.theme.strokeWidth,
         strokeStyle: this.theme.strokeStyle,
         roughness: this.theme.roughness,
-        opacity: 100,
-        groupIds: [],
         roundness: this.theme.roundness,
-        boundElements: null,
-        locked: false,
-        strokeSharpness: "round",
-        isDeleted: false,
-        link: null,
-        updated: 0,
-        seed: Math.floor(Math.random() * 0x7fffffff),
-        version: 2,
-        versionNonce: 0,
-        frameId: null,
-      } as ExcalidrawElement,
+      }),
       this.theme,
       this._colorIdx - 1
     );
@@ -119,49 +102,22 @@ export class Diagram {
     this.elements.push(el);
     this._named.set(name, el);
 
-    // Add text label bound to this shape
+    // Bound text label
     if (name) {
       const textEl = normalizeElement(
-        {
-          id: makeId(),
-          type: "text",
-          x: x + w / 2 - name.length * this.theme.fontSize * 0.3,
-          y: y + h / 2 - this.theme.fontSize * 0.6,
-          width: name.length * this.theme.fontSize * 0.6,
-          height: this.theme.fontSize * 1.5,
-          angle: 0,
-          strokeColor: this.theme.text,
-          backgroundColor: "transparent",
-          fillStyle: "solid",
-          strokeWidth: 1,
-          strokeStyle: "solid",
-          roughness: 1,
-          opacity: 100,
-          groupIds: [],
-          roundness: null,
-          boundElements: null,
-          locked: false,
-          strokeSharpness: "round",
-          isDeleted: false,
-          link: null,
-          updated: 0,
-          seed: Math.floor(Math.random() * 0x7fffffff),
-          version: 2,
-          versionNonce: 0,
-          frameId: null,
-        } as ExcalidrawElement,
+        createTextElement(
+          name,
+          x + w / 2 - name.length * this.theme.fontSize * 0.3,
+          y + h / 2 - this.theme.fontSize * 0.6,
+          this.theme.fontSize,
+          this.theme.fontFamily,
+          el.id
+        ),
         this.theme,
         0
       ) as any;
-      textEl.text = name;
-      textEl.fontSize = this.theme.fontSize;
-      textEl.fontFamily = this.theme.fontFamily;
-      textEl.textAlign = "center";
-      textEl.verticalAlign = "middle";
+      textEl.strokeColor = this.theme.text;
       textEl.containerId = el.id;
-      textEl.autoResize = true;
-      textEl.lineHeight = 1.25;
-      textEl.baseline = this.theme.fontSize * 0.8;
       textEl.originalText = name;
 
       el.boundElements = [{ id: textEl.id, type: "text" }];
@@ -190,32 +146,11 @@ export class Diagram {
     const dy = ty - fy;
 
     const el = normalizeElement(
-      {
-        id: makeId(),
-        type: "arrow",
-        x: fx, y: fy,
-        width: dx, height: dy,
-        angle: 0,
+      createElement("arrow", {
+        x: fx, y: fy, width: dx, height: dy,
         strokeColor: this.theme.arrow,
-        backgroundColor: "transparent",
-        fillStyle: "solid",
-        strokeWidth: this.theme.strokeWidth,
-        strokeStyle: this.theme.strokeStyle,
-        roughness: this.theme.roughness,
-        opacity: 100,
-        groupIds: [],
         roundness: null,
-        boundElements: null,
-        locked: false,
-        strokeSharpness: "round",
-        isDeleted: false,
-        link: null,
-        updated: 0,
-        seed: Math.floor(Math.random() * 0x7fffffff),
-        version: 2,
-        versionNonce: 0,
-        frameId: null,
-      } as ExcalidrawElement,
+      }),
       this.theme,
       0
     ) as any;
@@ -227,46 +162,19 @@ export class Diagram {
 
     if (opts.label) {
       const textEl = normalizeElement(
-        {
-          id: makeId(),
-          type: "text",
-          x: fx + dx / 2 - opts.label.length * this.theme.fontSize * 0.3,
-          y: fy + dy / 2 - this.theme.fontSize * 1.2,
-          width: opts.label.length * this.theme.fontSize * 0.6,
-          height: this.theme.fontSize * 1.5,
-          angle: 0,
-          strokeColor: this.theme.text,
-          backgroundColor: "transparent",
-          fillStyle: "solid",
-          strokeWidth: 1,
-          strokeStyle: "solid",
-          roughness: 1,
-          opacity: 100,
-          groupIds: [],
-          roundness: null,
-          boundElements: null,
-          locked: false,
-          strokeSharpness: "round",
-          isDeleted: false,
-          link: null,
-          updated: 0,
-          seed: Math.floor(Math.random() * 0x7fffffff),
-          version: 2,
-          versionNonce: 0,
-          frameId: null,
-        } as ExcalidrawElement,
+        createTextElement(
+          opts.label,
+          fx + dx / 2 - opts.label.length * this.theme.fontSize * 0.3,
+          fy + dy / 2 - this.theme.fontSize * 1.2,
+          14,
+          this.theme.fontFamily,
+          el.id
+        ),
         this.theme,
         0
       ) as any;
-      textEl.text = opts.label;
-      textEl.fontSize = 14;
-      textEl.fontFamily = this.theme.fontFamily;
-      textEl.textAlign = "center";
-      textEl.verticalAlign = "middle";
+      textEl.strokeColor = this.theme.text;
       textEl.containerId = el.id;
-      textEl.autoResize = true;
-      textEl.lineHeight = 1.25;
-      textEl.baseline = 12;
       textEl.originalText = opts.label;
 
       el.boundElements = [{ id: textEl.id, type: "text" }];
@@ -281,44 +189,11 @@ export class Diagram {
   addText(content: string, x: number, y: number, fontSize?: number): ExcalidrawElement {
     const fs = fontSize ?? this.theme.fontSize;
     const el = normalizeElement(
-      {
-        id: makeId(),
-        type: "text",
-        x, y,
-        width: content.length * fs * 0.6,
-        height: fs * 1.5,
-        angle: 0,
-        strokeColor: this.theme.text,
-        backgroundColor: "transparent",
-        fillStyle: "solid",
-        strokeWidth: 1,
-        strokeStyle: "solid",
-        roughness: 1,
-        opacity: 100,
-        groupIds: [],
-        roundness: null,
-        boundElements: null,
-        locked: false,
-        strokeSharpness: "round",
-        isDeleted: false,
-        link: null,
-        updated: 0,
-        seed: Math.floor(Math.random() * 0x7fffffff),
-        version: 2,
-        versionNonce: 0,
-        frameId: null,
-      } as ExcalidrawElement,
+      createTextElement(content, x, y, fs, this.theme.fontFamily),
       this.theme,
       0
     ) as any;
-    el.text = content;
-    el.fontSize = fs;
-    el.fontFamily = this.theme.fontFamily;
-    el.textAlign = "center";
-    el.verticalAlign = "middle";
-    el.autoResize = true;
-    el.lineHeight = 1.25;
-    el.baseline = fs * 0.8;
+    el.strokeColor = this.theme.text;
     el.originalText = content;
     this.elements.push(el);
     return el;
@@ -349,13 +224,7 @@ export class Diagram {
       version: 2,
       source: "https://excalidraw.com",
       elements: this.elements,
-      appState: {
-        gridSize: null,
-        viewBackgroundColor: this.theme.background,
-        currentItemFontFamily: this.theme.fontFamily,
-        currentItemFontSize: this.theme.fontSize,
-        theme: this.theme.name === "dark" ? "dark" : "light",
-      },
+      appState: buildAppState(this.theme),
       files: {},
     };
   }

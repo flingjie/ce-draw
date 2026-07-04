@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 550" width="230" height="550">
+  <rect x="0" y="0" width="230" height="550" fill="#FFFFFF" />
+  <rect x="40" y="40" width="150" height="65" rx="0" ry="0" fill="#DBEAFE" fill-opacity="1" stroke="#2563EB" stroke-width="2" stroke-opacity="1" stroke-linejoin="round" />
+  <rect x="40" y="175" width="150" height="65" rx="0" ry="0" fill="#D1FAE5" fill-opacity="1" stroke="#059669" stroke-width="2" stroke-opacity="1" stroke-linejoin="round" />
+  <rect x="40" y="310" width="150" height="65" rx="0" ry="0" fill="#EDE9FE" fill-opacity="1" stroke="#7C3AED" stroke-width="2" stroke-opacity="1" stroke-linejoin="round" />
+  <rect x="40" y="445" width="150" height="65" rx="0" ry="0" fill="#FEE2E2" fill-opacity="1" stroke="#DC2626" stroke-width="2" stroke-opacity="1" stroke-linejoin="round" />
+  <polyline points="115,105 115,175" fill="none" stroke="#6B7280" stroke-width="2" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <polyline points="115,240 115,310" fill="none" stroke="#6B7280" stroke-width="2" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <polyline points="115,375 115,445" fill="none" stroke="#6B7280" stroke-width="2" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <polyline points="115,510 115,310" fill="none" stroke="#6B7280" stroke-width="2" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <polyline points="115,375 115,175" fill="none" stroke="#6B7280" stroke-width="2" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <polyline points="115,240 115,40" fill="none" stroke="#6B7280" stroke-width="2" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="115" dy="0">Client</tspan></text>
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="115" dy="0">API</tspan></text>
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="115" dy="0">Auth</tspan></text>
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="115" dy="0">DB</tspan></text>
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="115" dy="0">POST /login</tspan></text>
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="115" dy="0">validate(token)</tspan></text>
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="115" dy="0">SELECT user</tspan></text>
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="115" dy="0">user row</tspan></text>
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="115" dy="0">200 OK</tspan></text>
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="115" dy="0">JWT token</tspan></text>
+</svg>

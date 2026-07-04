@@ -15,29 +15,89 @@ Generate themed, hand-drawn `.excalidraw` files from Mermaid syntax.
 ## Workflow
 
 1. Understand the user's diagram request
-2. Write Mermaid syntax (see `references/mermaid_syntax.md`)
-3. Pipe to renderer: `echo "MERMAID" | npx tsx scripts/render.ts -o OUTPUT.excalidraw -t THEME`
-4. Report the output path
+2. Write Mermaid syntax (see reference below)
+3. Save to a temp file, then run: `npx tsx scripts/render.ts -i /tmp/diagram.mmd -o OUTPUT.excalidraw -t THEME`
+4. Or use the API: `mermaidToExcalidraw(mermaidText, "sketchy")`
+5. Report the output path
 
 ## Quick Start
 
-```bash
-# From a Mermaid file
-npx tsx scripts/render.ts -i diagram.mmd -o output.excalidraw -t sketchy
+```ts
+import { mermaidToExcalidraw } from "ec-draw";
 
-# Pipe Mermaid directly
-cat << 'EOF' | npx tsx scripts/render.ts -o login_flow.excalidraw -t sketchy
+const doc = mermaidToExcalidraw(`
 flowchart TD
     A[Login] --> B{Valid?}
     B -->|Yes| C[Dashboard]
     B -->|No| D[Error]
-EOF
+`, "sketchy");
 ```
 
-## Resources
+## Mermaid Syntax Reference
 
-- `scripts/render.ts` — main renderer: Mermaid → Excalidraw
-- `references/mermaid_syntax.md` — Mermaid syntax reference
-- `references/excalidraw_schema.md` — Excalidraw JSON schema
-- `templates/` — pattern guidance per diagram type
-- `library/icons.json` — reusable icon presets
+```
+flowchart TD              Top→Down (also TB, LR, RL, BT)
+    A[rectangle label]    Rectangle node
+    B{diamond label}      Diamond (decision)
+    C((circle label))     Circle/ellipse
+    D[(database label)]   Database cylinder
+    A --> B               Solid arrow
+    A -->|label| B        Labeled arrow
+    A -.-> B              Dotted arrow
+
+sequenceDiagram
+    A->>B: Request        Solid arrow (forward)
+    B-->>A: Response      Dashed arrow (return)
+
+erDiagram
+    A ||--o{ B : label    Relationship
+    A { type field }      Entity attributes
+
+classDiagram
+    A <|-- B              Inheritance
+    A : +type field       Attribute
+    A: +method()          Method
+```
+
+## Themes
+
+| Theme | Look | Background | Use When |
+|-------|------|------------|----------|
+| `sketchy` | Hand-drawn, warm earth tones | #F8F5F0 | Brainstorming, early ideas, informal docs |
+| `professional` | Clean lines, blue/gray palette | #FFFFFF | Architecture docs, formal presentations |
+| `dark` | Dark background, neon accents | #111827 | Dark-mode, terminal/tech contexts |
+| `colorful` | Bright primaries | #FFFBEB | Slides, teaching, demos |
+
+## Style Guide
+
+All output follows these principles:
+- **Consistent roughness** — theme controls hand-drawn feel (0=crisp, 2=sketchy)
+- **Rounded corners** on shapes (type 3) for a friendly look
+- **Color cycling** — each box gets the next color in the theme palette
+- **Bound text** — labels are proper Excalidraw text elements bound to their containers
+- **dagre layout** — same layout engine Mermaid uses, for professional node positioning
+
+## Templates
+
+Read from `templates/` for pattern guidance per diagram type:
+- `templates/flowchart.md` — decision trees, process flows, state machines
+- `templates/architecture.md` — system diagrams, service topology, infra
+- `templates/sequence.md` — API flows, message passing, timelines
+- `templates/er.md` — entity-relationship diagrams, data models
+- `templates/whiteboard.md` — freeform sketches, brainstorms, comparisons
+
+## Icon Library
+
+From `library/icons.json`: `database`, `server`, `cloud`, `user`, `gear`, `document`, `globe`, `mobile`, `lock`, `fire`.
+
+Use via Diagram API: `d.addIcon("database", 200, 100, 0)`.
+
+## Tips
+
+1. **Mermaid first** — dagre layout beats manual positioning for structured diagrams
+2. **Decision nodes are diamonds** — `{Label}` in Mermaid, `shape: "diamond"` in API
+3. **Pick the right theme** — sketchy for brainstorming, professional for docs
+4. **Check the icon library** — before drawing common infra shapes
+5. **Keep labels short** — ≤20 chars to avoid overlap in dagre layout
+6. **One diagram per script** — each output should be exactly one `.excalidraw` file
+7. **Ask if ambiguous** — clarify diagram type if the user's request is vague

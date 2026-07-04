@@ -1,22 +1,32 @@
 /**
  * Mermaid → Excalidraw converter.
  *
- * Parse Mermaid syntax, run dagre layout (same engine Mermaid uses),
- * then build themed Excalidraw elements. Pure Node.js — no browser needed.
+ * Pure Node.js — no browser or DOM needed. Parses Mermaid syntax,
+ * runs dagre layout, builds themed Excalidraw elements.
+ *
+ * Supported: flowchart, sequenceDiagram, erDiagram, classDiagram
  */
 
 import dagre from "dagre";
 import type { ExcalidrawElement, ExcalidrawDocument } from "./types.js";
-import { normalize } from "./normalize.js";
 import { getTheme } from "./themes.js";
-import { makeId } from "./normalize.js";
+import {
+  createElement,
+  createTextElement,
+  buildAppState,
+  normalize,
+  textWidth,
+} from "./normalize.js";
 
-// ── Mermaid Syntax Parser ──────────────────────────────────────
+// ── Types ──────────────────────────────────────────────────────
+
+type Shape = "rectangle" | "diamond" | "ellipse" | "roundrect";
+type Direction = "TB" | "LR" | "RL" | "BT";
 
 interface ParsedNode {
   id: string;
   label: string;
-  shape: "rectangle" | "diamond" | "ellipse" | "roundrect";
+  shape: Shape;
 }
 
 interface ParsedEdge {
@@ -25,311 +35,448 @@ interface ParsedEdge {
   label: string | null;
 }
 
-interface ParsedFlowchart {
-  type: "flowchart";
-  direction: "TB" | "LR" | "RL" | "BT";
+interface ParsedDiagram {
+  type: "flowchart" | "sequence" | "er" | "class";
+  direction?: Direction;
   nodes: ParsedNode[];
   edges: ParsedEdge[];
+  participants?: string[];
+  messages?: Array<{ from: string; to: string; text: string }>;
+  entities?: Record<string, { fields: string[] }>;
+  classes?: Record<string, { attributes: string[]; methods: string[] }>;
 }
 
-function parseMermaid(text: string): ParsedFlowchart {
+// ── Mermaid Syntax Parser ──────────────────────────────────────
+
+const NODE_PATTERNS: Array<[RegExp, Shape]> = [
+  [/(\w+)\[([^\]]+)\]/g, "rectangle"],
+  [/(\w+)\{([^}]+)\}/g, "diamond"],
+  [/(\w+)\(\(([^)]+)\)\)/g, "ellipse"],
+  [/(\w+)\[\(([^\]]+)\)\]/g, "roundrect"],
+];
+
+const EDGE_RE = /(\w+)\s*(--?>|-->>|-\.->|==>|-->)\s*(?:\|([^|]+)\|)?\s*(\w+)/g;
+
+function parseFlowchart(text: string): ParsedDiagram {
   const nodes: ParsedNode[] = [];
   const edges: ParsedEdge[] = [];
   const seen = new Set<string>();
 
-  // Detect direction
-  let direction: "TB" | "LR" | "RL" | "BT" = "TB";
-  const dirMatch = text.match(/flowchart\s+(TB|TD|LR|RL|BT)/i);
-  if (dirMatch) {
-    const d = dirMatch[1].toUpperCase();
-    direction = (d === "TD" ? "TB" : d) as "TB" | "LR" | "RL" | "BT";
+  let direction: Direction = "TB";
+  const dm = text.match(/flowchart\s+(TB|TD|LR|RL|BT)/i);
+  if (dm) {
+    const d = dm[1].toUpperCase();
+    direction = (d === "TD" ? "TB" : d) as Direction;
   }
 
-  // Parse node definitions: A[Label], B{Label}, C((Label)), D[(Label)]
-  const nodePatterns: Array<[RegExp, ParsedNode["shape"]]> = [
-    [/(\w+)\[([^\]]+)\]/g, "rectangle"],
-    [/(\w+)\{([^}]+)\}/g, "diamond"],
-    [/(\w+)\(\(([^)]+)\)\)/g, "ellipse"],
-    [/(\w+)\[\(([^\]]+)\)\]/g, "roundrect"],
-  ];
-
-  for (const [pattern, shape] of nodePatterns) {
-    for (const m of text.matchAll(pattern)) {
-      const id = m[1];
-      const label = m[2].trim();
-      if (!seen.has(id)) {
-        seen.add(id);
-        nodes.push({ id, label, shape });
+  for (const [p, shape] of NODE_PATTERNS) {
+    for (const m of text.matchAll(p)) {
+      if (!seen.has(m[1])) {
+        seen.add(m[1]);
+        nodes.push({ id: m[1], label: m[2].trim(), shape });
       }
     }
   }
 
-  // Parse edges: A -->|label| B, A --> B, A -.-> B, A ==> B
-  const edgeRe = /(\w+)\s*(--?>|-->>|-\.->|==>|-->)\s*(?:\|([^|]+)\|)?\s*(\w+)/g;
-  for (const m of text.matchAll(edgeRe)) {
-    const fromId = m[1];
-    const toId = m[4];
-    const label = m[3]?.trim() ?? null;
-
-    // Auto-create nodes referenced in edges but not defined
-    for (const nid of [fromId, toId]) {
-      if (!seen.has(nid)) {
-        seen.add(nid);
-        nodes.push({ id: nid, label: nid, shape: "rectangle" });
-      }
+  for (const m of text.matchAll(EDGE_RE)) {
+    const [from, to, label] = [m[1], m[4], m[3]?.trim() ?? null];
+    for (const nid of [from, to]) {
+      if (!seen.has(nid)) { seen.add(nid); nodes.push({ id: nid, label: nid, shape: "rectangle" }); }
     }
-
-    edges.push({ from: fromId, to: toId, label });
+    edges.push({ from, to, label });
   }
 
   return { type: "flowchart", direction, nodes, edges };
 }
 
+function parseSequence(text: string): ParsedDiagram {
+  const participants: string[] = [];
+  const messages: Array<{ from: string; to: string; text: string }> = [];
+
+  for (const line of text.split("\n")) {
+    const s = line.trim();
+    if (!s || s.startsWith("%%")) continue;
+
+    if (s.toLowerCase().startsWith("participant ")) {
+      const name = s.split(" ", 1)[1]?.trim().replace(/"/g, "") ?? "";
+      if (name && !participants.includes(name)) participants.push(name);
+      continue;
+    }
+
+    const am = s.match(/actor\s+(\w+)(?:\s+as\s+(\w+))?/i);
+    if (am) { const alias = am[2] || am[1]; if (!participants.includes(alias)) participants.push(alias); continue; }
+
+    const mm = s.match(/^(\w+)\s*(->>|-->>|->|-->)+\s*(\w+)\s*:\s*(.+)/);
+    if (mm) {
+      const [from, to, text] = [mm[1], mm[3], mm[4].trim()];
+      if (!participants.includes(from)) participants.push(from);
+      if (!participants.includes(to)) participants.push(to);
+      messages.push({ from, to, text });
+    }
+  }
+
+  const nodes: ParsedNode[] = participants.map((p) => ({ id: p, label: p, shape: "rectangle" }));
+  const edges: ParsedEdge[] = messages.map((m) => ({ from: m.from, to: m.to, label: m.text }));
+
+  return { type: "sequence", nodes, edges, participants, messages };
+}
+
+function parseErOrClass(text: string, type: "er" | "class"): ParsedDiagram {
+  const nodes: ParsedNode[] = [];
+  const edges: ParsedEdge[] = [];
+  const seen = new Set<string>();
+  const entities: Record<string, { fields: string[] }> = {};
+  const classes: Record<string, { attributes: string[]; methods: string[] }> = {};
+
+  let current: string | null = null;
+  const relRe = /(\w+)\s+(\|\||}o|o\{|\|o|o\||\}\||\|\{)\s*(--|\.\.)\s*(\|\||}o|o\{|\|o|o\||\}\||\|\{)\s+(\w+)\s*:\s*(.+)/;
+
+  for (const line of text.split("\n")) {
+    const s = line.trim();
+    if (!s || s.startsWith("%%") || /^(erDiagram|classDiagram)$/i.test(s)) continue;
+
+    // Relationship (check before block, cardinality like o{ contains "{")
+    const rm = s.match(relRe);
+    if (rm) {
+      for (const nid of [rm[1], rm[5]]) {
+        if (!seen.has(nid)) { seen.add(nid); nodes.push({ id: nid, label: nid, shape: "rectangle" }); }
+      }
+      edges.push({ from: rm[1], to: rm[5], label: rm[6].trim() });
+      continue;
+    }
+
+    // Inheritance: Child <|-- Parent
+    const im = s.match(/(\w+)\s*<\|--\s*(\w+)/);
+    if (im) {
+      for (const nid of [im[1], im[2]]) {
+        if (!seen.has(nid)) { seen.add(nid); nodes.push({ id: nid, label: nid, shape: "rectangle" }); }
+      }
+      edges.push({ from: im[1], to: im[2], label: "extends" });
+      continue;
+    }
+
+    // Block open
+    if (s.includes("{")) {
+      current = s.split("{")[0].trim();
+      if (!seen.has(current)) { seen.add(current); nodes.push({ id: current, label: current, shape: "rectangle" }); }
+      continue;
+    }
+    if (s.includes("}")) { current = null; continue; }
+
+    // Field inside block
+    if (current) {
+      if (type === "er") {
+        entities[current] ??= { fields: [] };
+        entities[current].fields.push(s);
+      } else {
+        classes[current] ??= { attributes: [], methods: [] };
+        if (s.includes("(")) classes[current].methods.push(s);
+        else classes[current].attributes.push(s);
+      }
+      continue;
+    }
+
+    // Inline member: ClassName : +type field
+    const cm = s.match(/(\w+)\s*:\s*(.+)/);
+    if (cm) {
+      if (!seen.has(cm[1])) { seen.add(cm[1]); nodes.push({ id: cm[1], label: cm[1], shape: "rectangle" }); }
+      classes[cm[1]] ??= { attributes: [], methods: [] };
+      if (cm[2].includes("(")) classes[cm[1]].methods.push(cm[2]);
+      else classes[cm[1]].attributes.push(cm[2]);
+    }
+  }
+
+  return type === "er"
+    ? { type: "er", nodes, edges, entities }
+    : { type: "class", nodes, edges, classes };
+}
+
+function parseMermaid(text: string): ParsedDiagram {
+  const first = text.trim().split("\n")[0].toLowerCase();
+  if (first.includes("flowchart") || first.startsWith("graph ")) return parseFlowchart(text);
+  if (first.includes("sequencediagram")) return parseSequence(text);
+  if (first.includes("erdiagram")) return parseErOrClass(text, "er");
+  if (first.includes("classdiagram")) return parseErOrClass(text, "class");
+  throw new Error(`Unknown diagram type: "${first}". Supported: flowchart, sequenceDiagram, erDiagram, classDiagram`);
+}
+
 // ── Dagre Layout ───────────────────────────────────────────────
 
-function runDagreLayout(
-  parsed: ParsedFlowchart
-): Map<string, { x: number; y: number; width: number; height: number }> {
+function runDagreLayout(nodes: ParsedNode[], edges: ParsedEdge[], direction: Direction = "TB") {
   const g = new dagre.graphlib.Graph({ multigraph: true });
-  g.setGraph({
-    rankdir: parsed.direction,
-    nodesep: 60,
-    ranksep: 70,
-    edgesep: 30,
-    marginx: 40,
-    marginy: 40,
-  });
+  g.setGraph({ rankdir: direction, nodesep: 60, ranksep: 70, edgesep: 30, marginx: 40, marginy: 40 });
   g.setDefaultEdgeLabel(() => ({}));
 
-  // Add nodes
-  for (const node of parsed.nodes) {
-    const w = node.shape === "diamond" ? 140 : 150;
-    const h = node.shape === "diamond" ? 90 : 65;
-    g.setNode(node.id, { label: node.label, width: w, height: h });
+  for (const n of nodes) {
+    const w = n.shape === "diamond" ? 140 : 150;
+    const h = n.shape === "diamond" ? 90 : 65;
+    g.setNode(n.id, { label: n.label, width: w, height: h });
   }
-
-  // Add edges
-  for (const edge of parsed.edges) {
-    g.setEdge(edge.from, edge.to, {});
-  }
+  for (const e of edges) g.setEdge(e.from, e.to, {});
 
   dagre.layout(g);
 
-  // Collect positions
   const positions = new Map<string, { x: number; y: number; width: number; height: number }>();
-  for (const nodeId of g.nodes()) {
-    const n = g.node(nodeId);
-    positions.set(nodeId, {
-      x: n.x - n.width / 2,
-      y: n.y - n.height / 2,
-      width: n.width,
-      height: n.height,
-    });
+  for (const nid of g.nodes()) {
+    const n = g.node(nid);
+    positions.set(nid, { x: n.x - n.width / 2, y: n.y - n.height / 2, width: n.width, height: n.height });
   }
-
   return positions;
 }
 
-// ── Excalidraw Element Builders ────────────────────────────────
+// ── Arrow Routing ──────────────────────────────────────────────
 
-function baseElement(type: string, overrides: Record<string, any> = {}): ExcalidrawElement {
+function routeArrow(
+  fromPos: { x: number; y: number; width: number; height: number },
+  toPos: { x: number; y: number; width: number; height: number },
+  direction: Direction
+): { fx: number; fy: number; tx: number; ty: number } {
+  if (direction === "TB") {
+    return {
+      fx: fromPos.x + fromPos.width / 2, fy: fromPos.y + fromPos.height,
+      tx: toPos.x + toPos.width / 2,   ty: toPos.y,
+    };
+  }
+  if (direction === "BT") {
+    return {
+      fx: fromPos.x + fromPos.width / 2, fy: fromPos.y,
+      tx: toPos.x + toPos.width / 2,   ty: toPos.y + toPos.height,
+    };
+  }
+  if (direction === "RL") {
+    return {
+      fx: fromPos.x,                     fy: fromPos.y + fromPos.height / 2,
+      tx: toPos.x + toPos.width,        ty: toPos.y + toPos.height / 2,
+    };
+  }
+  // LR
   return {
-    id: makeId(),
-    type,
-    x: 0, y: 0, width: 0, height: 0,
-    angle: 0,
-    strokeColor: "#000",
-    backgroundColor: "transparent",
-    fillStyle: "solid",
-    strokeWidth: 2,
-    strokeStyle: "solid",
-    roughness: 1,
-    opacity: 100,
-    groupIds: [],
-    roundness: null,
-    boundElements: null,
-    locked: false,
-    strokeSharpness: "round",
-    isDeleted: false,
-    link: null,
-    updated: 0,
-    seed: Math.floor(Math.random() * 0x7fffffff),
-    version: 2,
-    versionNonce: 0,
-    frameId: null,
-    ...overrides,
-  } as unknown as ExcalidrawElement;
+    fx: fromPos.x + fromPos.width,      fy: fromPos.y + fromPos.height / 2,
+    tx: toPos.x,                        ty: toPos.y + toPos.height / 2,
+  };
 }
 
-function textElement(
-  content: string,
-  x: number, y: number,
-  fontSize: number,
-  fontFamily: number,
-  containerId: string | null = null
-): ExcalidrawElement {
-  return baseElement("text", {
-    x, y,
-    width: content.length * fontSize * 0.6,
-    height: fontSize * 1.5,
-    text: content,
-    fontSize,
-    fontFamily,
-    textAlign: "center",
-    verticalAlign: "middle",
-    containerId,
-    autoResize: true,
-    lineHeight: 1.25,
-    baseline: fontSize * 0.8,
-    originalText: content,
-    strokeColor: "#1F2937",
-    strokeWidth: 1,
+// ── Renderers ──────────────────────────────────────────────────
+
+function buildShape(
+  node: ParsedNode,
+  pos: { x: number; y: number; width: number; height: number },
+  stroke: string,
+  bg: string,
+  theme: ReturnType<typeof getTheme>
+): ExcalidrawElement[] {
+  const shapeType = node.shape === "roundrect" ? "rectangle" : node.shape as "rectangle" | "diamond" | "ellipse";
+
+  const el = createElement(shapeType, {
+    x: pos.x, y: pos.y, width: pos.width, height: pos.height,
+    strokeColor: stroke,
+    backgroundColor: bg,
+    fillStyle: theme.fillStyle,
+    strokeWidth: theme.strokeWidth,
+    roughness: theme.roughness,
+    roundness: shapeType === "rectangle" ? theme.roundness : (shapeType === "ellipse" ? null : theme.roundness),
   });
+
+  // Bound text label
+  const label = createTextElement(
+    node.label,
+    pos.x + pos.width / 2 - textWidth(node.label, theme.fontSize) / 2,
+    pos.y + pos.height / 2 - theme.fontSize * 0.6,
+    theme.fontSize,
+    theme.fontFamily,
+    el.id
+  );
+  label.strokeColor = theme.text;
+
+  el.boundElements = [{ id: label.id, type: "text" }];
+  return [el, label];
+}
+
+function buildArrow(
+  edge: ParsedEdge,
+  fromPos: { x: number; y: number; width: number; height: number },
+  toPos: { x: number; y: number; width: number; height: number },
+  direction: Direction,
+  theme: ReturnType<typeof getTheme>
+): ExcalidrawElement[] {
+  const { fx, fy, tx, ty } = routeArrow(fromPos, toPos, direction);
+  const dx = tx - fx, dy = ty - fy;
+
+  const arrowEl = createElement("arrow", {
+    x: fx, y: fy, width: dx, height: dy,
+    strokeColor: theme.arrow,
+    roundness: null,
+  }) as any;
+  arrowEl.points = [{ x: 0, y: 0 }, { x: dx, y: dy }];
+  arrowEl.startArrowhead = null;
+  arrowEl.endArrowhead = "arrow";
+  arrowEl.startBinding = null;
+  arrowEl.endBinding = null;
+
+  const result: ExcalidrawElement[] = [arrowEl];
+
+  if (edge.label) {
+    const lbl = createTextElement(
+      edge.label,
+      fx + dx / 2 - textWidth(edge.label, 14) / 2,
+      fy + dy / 2 - 20,
+      14, theme.fontFamily, arrowEl.id
+    );
+    lbl.strokeColor = theme.text;
+    arrowEl.boundElements = [{ id: lbl.id, type: "text" }];
+    result.push(lbl);
+  }
+
+  return result;
 }
 
 // ── Main API ───────────────────────────────────────────────────
 
 /**
- * Convert Mermaid syntax to a fully themed Excalidraw document.
+ * Convert Mermaid syntax to a themed Excalidraw document.
  *
- * Uses dagre (the same layout engine Mermaid uses) for professional
- * node positioning, then applies ec-draw's theme for consistent styling.
- * Pure Node.js — no browser or DOM needed.
- *
- * @param mermaidText - Mermaid diagram definition
- * @param themeName - ec-draw theme ("sketchy" | "professional" | "dark" | "colorful")
- * @returns Complete Excalidraw document ready to save
+ * Uses dagre layout for automatic node positioning, then applies
+ * ec-draw's theme for consistent styling. Pure Node.js.
  */
-export async function mermaidToExcalidraw(
+export function mermaidToExcalidraw(
   mermaidText: string,
   themeName: string = "sketchy"
-): Promise<ExcalidrawDocument> {
+): ExcalidrawDocument {
   const theme = getTheme(themeName);
-
-  // 1. Parse Mermaid syntax
   const parsed = parseMermaid(mermaidText.trim());
+
   if (parsed.nodes.length === 0) {
     throw new Error("No nodes found in Mermaid text. Check your syntax.");
   }
 
-  // 2. Run dagre layout
-  const positions = runDagreLayout(parsed);
+  const direction = parsed.direction ?? "TB";
+  const positions = runDagreLayout(parsed.nodes, parsed.edges, direction);
 
-  // 3. Build Excalidraw elements
   const elements: ExcalidrawElement[] = [];
-  const nodeMap = new Map(parsed.nodes.map(n => [n.id, n]));
+  let colorIdx = 0;
 
+  // Build shapes
   for (const node of parsed.nodes) {
-    const pos = positions.get(node.id)!;
-    const [stroke, bg] = theme.shapes[elements.filter(e =>
-      ["rectangle", "ellipse", "diamond"].includes(e.type)
-    ).length % theme.shapes.length];
+    const pos = positions.get(node.id);
+    if (!pos) continue;
+    const [stroke, bg] = theme.shapes[colorIdx % theme.shapes.length];
+    colorIdx++;
+    elements.push(...buildShape(node, pos, stroke, bg, theme));
 
-    const shapeType = node.shape === "roundrect" ? "rectangle"
-      : node.shape as "rectangle" | "diamond" | "ellipse";
-
-    const el = baseElement(shapeType, {
-      x: pos.x,
-      y: pos.y,
-      width: pos.width,
-      height: pos.height,
-      strokeColor: stroke,
-      backgroundColor: bg,
-      fillStyle: theme.fillStyle,
-      strokeWidth: theme.strokeWidth,
-      roughness: theme.roughness,
-      roundness: shapeType === "rectangle" ? theme.roundness : (shapeType === "ellipse" ? null : theme.roundness),
-    });
-
-    // Text label bound to shape
-    const label = textElement(
-      node.label,
-      pos.x + pos.width / 2 - node.label.length * theme.fontSize * 0.3,
-      pos.y + pos.height / 2 - theme.fontSize * 0.6,
-      theme.fontSize,
-      theme.fontFamily,
-      el.id
-    );
-    label.strokeColor = theme.text;
-
-    el.boundElements = [{ id: label.id, type: "text" }];
-    elements.push(el);
-    elements.push(label);
-  }
-
-  // 4. Build arrows for edges
-  for (const edge of parsed.edges) {
-    const fromPos = positions.get(edge.from);
-    const toPos = positions.get(edge.to);
-    if (!fromPos || !toPos) continue;
-
-    // Edge routing: find best connection points
-    const fromNode = nodeMap.get(edge.from)!;
-    const toNode = nodeMap.get(edge.to)!;
-
-    let fx: number, fy: number, tx: number, ty: number;
-
-    if (parsed.direction === "TB" || parsed.direction === "BT") {
-      // Vertical flow: top→bottom or bottom→top
-      if (parsed.direction === "BT") {
-        fx = fromPos.x + fromPos.width / 2;
-        fy = fromPos.y;
-        tx = toPos.x + toPos.width / 2;
-        ty = toPos.y + toPos.height;
-      } else {
-        fx = fromPos.x + fromPos.width / 2;
-        fy = fromPos.y + fromPos.height;
-        tx = toPos.x + toPos.width / 2;
-        ty = toPos.y;
-      }
-    } else {
-      // Horizontal flow: left→right or right→left
-      if (parsed.direction === "RL") {
-        fx = fromPos.x;
-        fy = fromPos.y + fromPos.height / 2;
-        tx = toPos.x + toPos.width;
-        ty = toPos.y + toPos.height / 2;
-      } else {
-        fx = fromPos.x + fromPos.width;
-        fy = fromPos.y + fromPos.height / 2;
-        tx = toPos.x;
-        ty = toPos.y + toPos.height / 2;
+    // ER: render entity fields below the shape
+    if (parsed.entities?.[node.id]) {
+      let fy = pos.y + pos.height + 5;
+      for (const f of parsed.entities[node.id].fields) {
+        const t = createTextElement(f, pos.x + 8, fy, 12, theme.fontFamily) as any;
+        t.strokeColor = theme.text;
+        t.textAlign = "left";
+        elements.push(t);
+        fy += 16;
       }
     }
 
-    const dx = tx - fx;
-    const dy = ty - fy;
+    // Class: render attributes and methods below the shape
+    if (parsed.classes?.[node.id]) {
+      const info = parsed.classes[node.id];
+      let fy = pos.y + pos.height + 5;
 
-    const arrow = baseElement("arrow", {
-      x: fx, y: fy,
-      width: dx, height: dy,
-      strokeColor: theme.arrow,
-      roundness: null,
-    }) as any;
-    arrow.points = [{ x: 0, y: 0 }, { x: dx, y: dy }];
-    arrow.startArrowhead = null;
-    arrow.endArrowhead = "arrow";
-    arrow.startBinding = null;
-    arrow.endBinding = null;
+      // Attributes
+      for (const attr of info.attributes) {
+        const t = createTextElement(attr, pos.x + 8, fy, 12, theme.fontFamily) as any;
+        t.strokeColor = theme.text;
+        t.textAlign = "left";
+        elements.push(t);
+        fy += 16;
+      }
 
-    if (edge.label) {
-      const lbl = textElement(
-        edge.label,
-        fx + dx / 2 - edge.label.length * 6,
-        fy + dy / 2 - 20,
-        14,
-        theme.fontFamily,
-        arrow.id
-      );
-      lbl.strokeColor = theme.text;
-      arrow.boundElements = [{ id: lbl.id, type: "text" }];
-      elements.push(lbl);
+      // Separator before methods
+      if (info.methods.length > 0) {
+        const sep = createElement("line", {
+          x: pos.x + 4, y: fy, width: pos.width - 8, height: 0,
+          strokeColor: theme.arrow, strokeWidth: 1, roundness: null,
+        });
+        elements.push(sep);
+        fy += 10;
+      }
+
+      // Methods
+      for (const m of info.methods) {
+        const t = createTextElement(m, pos.x + 8, fy, 12, theme.fontFamily) as any;
+        t.strokeColor = theme.text;
+        t.textAlign = "left";
+        elements.push(t);
+        fy += 16;
+      }
     }
-
-    elements.push(arrow);
   }
 
-  // 5. Apply theme normalization
+  // Sequence state (used by lifelines + arrow routing below)
+  let lifelineTop = 0;
+  if (parsed.type === "sequence") {
+    lifelineTop = (positions.values().next().value?.y ?? 50) + 70;
+    const msgCount = parsed.messages?.length ?? 0;
+    const lifelineBottom = lifelineTop + Math.max(msgCount * 60, 100) + 20;
+
+    for (const node of parsed.nodes) {
+      const pos = positions.get(node.id);
+      if (!pos) continue;
+      const cx = pos.x + pos.width / 2;
+      const l = createElement("line", {
+        x: cx, y: lifelineTop, width: 0, height: lifelineBottom - lifelineTop,
+        strokeColor: theme.arrow, strokeWidth: 1, roundness: null, strokeStyle: "dashed",
+      });
+      elements.push(l);
+    }
+  }
+
+  // Build arrows
+  if (parsed.type === "sequence") {
+    // Sequence: horizontal arrows along lifelines, chronological order
+    const msgSpacing = 55;
+    let msgY = lifelineTop + 15;
+    for (const msg of parsed.messages ?? []) {
+      const fp = positions.get(msg.from);
+      const tp = positions.get(msg.to);
+      if (!fp || !tp) continue;
+
+      const fcx = fp.x + fp.width / 2;
+      const tcx = tp.x + tp.width / 2;
+      const dx = tcx - fcx;
+
+      const arr = createElement("arrow", {
+        x: fcx, y: msgY, width: dx, height: 0,
+        strokeColor: theme.arrow, roundness: null,
+      }) as any;
+      arr.points = [{ x: 0, y: 0 }, { x: dx, y: 0 }];
+      arr.startArrowhead = null;
+      arr.endArrowhead = "arrow";
+
+      if (msg.text) {
+        const lbl = createTextElement(
+          msg.text,
+          fcx + dx / 2 - textWidth(msg.text, 12) / 2,
+          msgY - 18,
+          12, theme.fontFamily, arr.id
+        ) as any;
+        lbl.strokeColor = theme.text;
+        arr.boundElements = [{ id: lbl.id, type: "text" }];
+        elements.push(lbl);
+      }
+
+      elements.push(arr);
+      msgY += msgSpacing;
+    }
+  } else {
+    // Flowchart/ER/Class: dagre-routed arrows
+    for (const edge of parsed.edges) {
+      const fp = positions.get(edge.from);
+      const tp = positions.get(edge.to);
+      if (!fp || !tp) continue;
+      elements.push(...buildArrow(edge, fp, tp, direction, theme));
+    }
+  }
+
+  // Apply theme normalization (single pass)
   const normalized = normalize(elements, theme);
 
   return {
@@ -337,13 +484,7 @@ export async function mermaidToExcalidraw(
     version: 2,
     source: "https://excalidraw.com",
     elements: normalized,
-    appState: {
-      gridSize: null,
-      viewBackgroundColor: theme.background,
-      currentItemFontFamily: theme.fontFamily,
-      currentItemFontSize: theme.fontSize,
-      theme: theme.name === "dark" ? "dark" : "light",
-    },
+    appState: buildAppState(theme),
     files: {},
   };
 }

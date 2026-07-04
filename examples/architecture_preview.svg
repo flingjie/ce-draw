@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 545 685" width="545" height="685">
+  <rect x="0" y="0" width="545" height="685" fill="#FFFFFF" />
+  <rect x="145" y="40" width="150" height="65" rx="0" ry="0" fill="#DBEAFE" fill-opacity="1" stroke="#2563EB" stroke-width="2" stroke-opacity="1" stroke-linejoin="round" />
+  <rect x="145" y="175" width="150" height="65" rx="0" ry="0" fill="#D1FAE5" fill-opacity="1" stroke="#059669" stroke-width="2" stroke-opacity="1" stroke-linejoin="round" />
+  <rect x="40" y="310" width="150" height="65" rx="0" ry="0" fill="#EDE9FE" fill-opacity="1" stroke="#7C3AED" stroke-width="2" stroke-opacity="1" stroke-linejoin="round" />
+  <rect x="250" y="310" width="150" height="65" rx="0" ry="0" fill="#FEE2E2" fill-opacity="1" stroke="#DC2626" stroke-width="2" stroke-opacity="1" stroke-linejoin="round" />
+  <rect x="145" y="445" width="150" height="65" rx="0" ry="0" fill="#FEF3C7" fill-opacity="1" stroke="#D97706" stroke-width="2" stroke-opacity="1" stroke-linejoin="round" />
+  <rect x="40" y="580" width="150" height="65" rx="0" ry="0" fill="#DBEAFE" fill-opacity="1" stroke="#2563EB" stroke-width="2" stroke-opacity="1" stroke-linejoin="round" />
+  <rect x="250" y="580" width="150" height="65" rx="0" ry="0" fill="#D1FAE5" fill-opacity="1" stroke="#059669" stroke-width="2" stroke-opacity="1" stroke-linejoin="round" />
+  <ellipse cx="430" cy="72.5" rx="75" ry="32.5" fill="#EDE9FE" fill-opacity="1" stroke="#7C3AED" stroke-width="2" stroke-opacity="1" stroke-linejoin="round" />
+  <polyline points="220,105 220,175" fill="none" stroke="#6B7280" stroke-width="2" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <polyline points="220,240 115,310" fill="none" stroke="#6B7280" stroke-width="2" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <polyline points="220,240 325,310" fill="none" stroke="#6B7280" stroke-width="2" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <polyline points="115,375 220,445" fill="none" stroke="#6B7280" stroke-width="2" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <polyline points="325,375 220,445" fill="none" stroke="#6B7280" stroke-width="2" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <polyline points="220,510 115,580" fill="none" stroke="#6B7280" stroke-width="2" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <polyline points="220,510 325,580" fill="none" stroke="#6B7280" stroke-width="2" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="220" dy="0">CDN</tspan></text>
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="220" dy="0">Load Balancer</tspan></text>
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="115" dy="0">Web Server</tspan></text>
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="325" dy="0">Web Server</tspan></text>
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="220" dy="0">API Server</tspan></text>
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="115" dy="0">(PostgreSQL)</tspan></text>
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="325" dy="0">(Redis)</tspan></text>
+  <text font-family="Helvetica" font-size="16" fill="#1F2937" fill-opacity="1" text-anchor="middle"><tspan x="430" dy="0">Users</tspan></text>
+</svg>

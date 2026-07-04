@@ -1,112 +1,93 @@
 # Architecture Diagram Template
 
-Use this template when the user asks for a system architecture, service topology,
+Use when the user asks for a system architecture, service topology,
 infrastructure diagram, cloud architecture, or component diagram.
 
-## Pattern
+## Mermaid Approach (Recommended)
 
-Boxes arranged in layers or a grid, connected by arrows showing data flow or
-dependencies. Use frames to group related components into layers/tiers.
+```ts
+import { mermaidToExcalidraw } from "ec-draw";
 
-## Layered Architecture
-
-```python
-from ec_draw import Diagram, layout
-
-layers = layout.layered(
-    [3, 4, 2],           # items per layer: Web=3, Services=4, Data=2
-    start_x=50, start_y=50,
-    item_w=150, item_h=55,
-    layer_gap=40,
-    layer_w=900,
-)
-
-d = Diagram(theme="professional", cols=4, cell_w=150, cell_h=55)
-
-layer_names = ["Web Tier", "Services Tier", "Data Tier"]
-layer_items = [
-    ["CDN", "Load Balancer", "Web Server"],        # Web tier
-    ["Auth", "Users API", "Orders API", "Worker"],  # Services tier
-    ["PostgreSQL", "Redis"],                        # Data tier
-]
-
-for i, (name, items) in enumerate(zip(layer_names, layer_items)):
-    lx, ly, lw, lh = layers[i]["layer_rect"]
-    d.add_frame(name, lx, ly, lw, lh)
-
-    for j, (ix, iy, iw, ih) in enumerate(layers[i]["items"]):
-        label = items[j]
-        d.add_box(label, row=0, col=0, width=iw, height=ih)
-        d._named[label]["x"] = ix
-        d._named[label]["y"] = iy
-
-d.save("layered_architecture.excalidraw")
+const mermaid = `
+flowchart TD
+    Users((Users)) --> CDN[CDN]
+    CDN --> LB[Load Balancer]
+    LB --> Web1[Web Server 1]
+    LB --> Web2[Web Server 2]
+    LB --> Web3[Web Server 3]
+    Web1 --> API[API Server]
+    Web2 --> API
+    Web3 --> API
+    API --> DB[(PostgreSQL)]
+    API --> Cache[(Redis)]
+    API --> Queue[(Message Queue)]
+`;
+mermaidToExcalidraw(mermaid, "professional");
 ```
 
-## Service Mesh (Grid)
+### Mermaid Patterns for Architecture
 
-```python
-d = Diagram(theme="professional", cols=4, cell_w=170, cell_h=70, gap_x=40, gap_y=50)
-
-# Top: ingress
-d.add_box("API Gateway", row=0, col=0, span=4, height=50)
-
-# Middle: services
-d.add_box("Auth", row=1, col=0)
-d.add_box("Users", row=1, col=1)
-d.add_box("Orders", row=1, col=2)
-d.add_box("Payments", row=1, col=3)
-
-# Bottom: data
-d.add_box("PostgreSQL", row=2, col=0, span=2, height=50)
-d.add_box("Redis", row=2, col=2)
-d.add_box("S3", row=2, col=3)
-
-# Connections
-for svc in ["Auth", "Users", "Orders", "Payments"]:
-    d.add_arrow("API Gateway", svc)
-for svc in ["Auth", "Users", "Orders"]:
-    d.add_arrow(svc, "PostgreSQL")
-d.add_arrow("Orders", "Redis")
-d.add_arrow("Payments", "S3")
-
-d.save("service_mesh.excalidraw")
+```
+flowchart TD
+    ((users))          Circle — external users/traffic
+    [load balancer]    Rectangle — infrastructure
+    [(database)]       Database cylinder — data stores
+    LR layout          Horizontal layout for network diagrams
 ```
 
-## Cloud Architecture (With Icons)
+### Horizontal (network) layout
 
-```python
-import json
-from ec_draw import Diagram
+```ts
+const mermaid = `
+flowchart LR
+    Browser[Browser] --> Firewall{Firewall}
+    Firewall --> LB[Load Balancer]
+    LB --> App1[App 1]
+    LB --> App2[App 2]
+    App1 --> DB[(Database)]
+    App2 --> DB
+`;
+mermaidToExcalidraw(mermaid, "professional");
+```
 
-# Load icons from library
-with open("library/icons.json") as f:
-    icons = json.load(f)
+## Diagram Builder Approach (for layered architectures)
 
-d = Diagram(theme="professional", cols=4, cell_w=150, cell_h=80, gap_x=50, gap_y=60)
+```ts
+import { Diagram } from "ec-draw";
 
-# Use icon presets for cloud services
-d.add_box("Load Balancer", row=0, col=1, span=2)
-d.add_box("Web Server", row=1, col=0)
-d.add_box("Web Server", row=1, col=1)
-d.add_box("App Server", row=1, col=2)
-d.add_box("App Server", row=1, col=3)
-d.add_box("Database", row=2, col=1, span=2, height=50)
+const d = new Diagram("professional", { cols: 4, cellW: 160, cellH: 60, gapX: 40, gapY: 60 });
 
-d.add_arrow("Load Balancer", "Web Server")
-d.add_arrow("Load Balancer", "Web Server")
-d.add_arrow("Web Server", "App Server")
-d.add_arrow("Web Server", "App Server")
-d.add_arrow("App Server", "Database")
-d.add_arrow("App Server", "Database")
+// Top tier: entry
+d.addBox("CDN", { row: 0, col: 0, span: 4, height: 40 });
+d.addBox("Load Balancer", { row: 1, col: 0, span: 4, height: 40 });
 
-d.save("cloud_architecture.excalidraw")
+// Middle tier: services
+d.addBox("Auth Service", { row: 2, col: 0 });
+d.addBox("Users API", { row: 2, col: 1 });
+d.addBox("Orders API", { row: 2, col: 2 });
+d.addBox("Payments", { row: 2, col: 3 });
+
+// Bottom tier: data
+d.addBox("PostgreSQL", { row: 3, col: 0, span: 2, height: 45 });
+d.addBox("Redis", { row: 3, col: 2 });
+d.addBox("S3 Storage", { row: 3, col: 3 });
+
+// Connections
+["Auth Service", "Users API", "Orders API", "Payments"].forEach(s => {
+  d.addArrow("Load Balancer", s);
+});
+["Auth Service", "Users API", "Orders API"].forEach(s => {
+  d.addArrow(s, "PostgreSQL");
+});
+d.addArrow("Orders API", "Redis");
+d.addArrow("Payments", "S3 Storage");
+
+d.save("layered_arch.excalidraw");
 ```
 
 ## Tips
-- Use `theme="professional"` for clean, crisp architecture diagrams
-- Layer frames (dashed borders) visually separate tiers
-- Span wide boxes across columns with `span=N`
-- Name boxes after real service names for clarity
-- Vertical flows: API Gateway at top, data stores at bottom
-- Check `library/icons.json` before drawing common infra shapes
+- `professional` theme for clean, document-ready architecture diagrams
+- Top-to-bottom flows: entry at top, data at bottom
+- Span wide boxes across columns with `span: N`
+- `[(label)]` = database cylinder in Mermaid
+- Check `library/icons.json` for common infra shapes

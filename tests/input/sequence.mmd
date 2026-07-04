@@ -1,0 +1,8 @@
+sequenceDiagram
+    participant U as User
+    participant A as API
+    participant D as Database
+    U->>A: POST /login
+    A->>D: Query user
+    D-->>A: User record
+    A-->>U: JWT token

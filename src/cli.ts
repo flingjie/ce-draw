@@ -15,7 +15,7 @@ import { mermaidToExcalidraw } from "./mermaid.js";
 import { listThemes } from "./themes.js";
 import { listIcons } from "./library.js";
 
-async function main() {
+function main() {
   const args = process.argv.slice(2);
 
   // --help
@@ -93,12 +93,9 @@ Examples:
   }
 
   // Generate
-  const doc = await mermaidToExcalidraw(mermaidText, themeName);
+  const doc = mermaidToExcalidraw(mermaidText, themeName);
   writeFileSync(outputPath, JSON.stringify(doc, null, 2), "utf-8");
   console.log(`Saved: ${resolve(outputPath)}`);
 }
 
-main().catch((err) => {
-  console.error("Error:", err.message);
-  process.exit(1);
-});
+main();

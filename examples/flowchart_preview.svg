@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 545 575" width="545" height="575">
+  <rect x="0" y="0" width="545" height="575" fill="#F8F5F0" />
+  <rect x="40" y="40" width="150" height="65" rx="24" ry="24" fill="#B8D4F0" fill-opacity="1" stroke="#1E3A5F" stroke-width="3" stroke-opacity="1" stroke-linejoin="round" />
+  <rect x="250" y="40" width="150" height="65" rx="24" ry="24" fill="#C5E8C0" fill-opacity="1" stroke="#2D5A27" stroke-width="3" stroke-opacity="1" stroke-linejoin="round" />
+  <rect x="145" y="335" width="150" height="65" rx="24" ry="24" fill="#F0D5E5" fill-opacity="1" stroke="#6B3A5B" stroke-width="3" stroke-opacity="1" stroke-linejoin="round" />
+  <rect x="355" y="335" width="150" height="65" rx="24" ry="24" fill="#F5D5B8" fill-opacity="1" stroke="#8B4513" stroke-width="3" stroke-opacity="1" stroke-linejoin="round" />
+  <rect x="145" y="470" width="150" height="65" rx="24" ry="24" fill="#E8D5C0" fill-opacity="1" stroke="#4A3728" stroke-width="3" stroke-opacity="1" stroke-linejoin="round" />
+  <polygon points="235,175 305,220 235,265 165,220" fill="#B8D4F0" fill-opacity="1" stroke="#1E3A5F" stroke-width="3" stroke-opacity="1" stroke-linejoin="round" />
+  <polyline points="325,105 235,175" fill="none" stroke="#5A5A5A" stroke-width="3" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <polyline points="235,265 220,335" fill="none" stroke="#5A5A5A" stroke-width="3" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <polyline points="235,265 430,335" fill="none" stroke="#5A5A5A" stroke-width="3" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <polyline points="220,400 220,470" fill="none" stroke="#5A5A5A" stroke-width="3" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <polyline points="430,400 325,40" fill="none" stroke="#5A5A5A" stroke-width="3" stroke-opacity="1" stroke-linecap="round" stroke-linejoin="round" />
+  <text font-family="Virgil" font-size="16" fill="#2C2C2C" fill-opacity="1" text-anchor="middle"><tspan x="115" dy="0">Start</tspan></text>
+  <text font-family="Virgil" font-size="16" fill="#2C2C2C" fill-opacity="1" text-anchor="middle"><tspan x="325" dy="0">Get Input</tspan></text>
+  <text font-family="Virgil" font-size="16" fill="#2C2C2C" fill-opacity="1" text-anchor="middle"><tspan x="220" dy="0">Process</tspan></text>
+  <text font-family="Virgil" font-size="16" fill="#2C2C2C" fill-opacity="1" text-anchor="middle"><tspan x="430" dy="0">Show Error</tspan></text>
+  <text font-family="Virgil" font-size="16" fill="#2C2C2C" fill-opacity="1" text-anchor="middle"><tspan x="220" dy="0">End</tspan></text>
+  <text font-family="Virgil" font-size="16" fill="#2C2C2C" fill-opacity="1" text-anchor="middle"><tspan x="235" dy="0">Valid?</tspan></text>
+  <text font-family="Virgil" font-size="16" fill="#2C2C2C" fill-opacity="1" text-anchor="middle"><tspan x="227.5" dy="0">Yes</tspan></text>
+  <text font-family="Virgil" font-size="16" fill="#2C2C2C" fill-opacity="1" text-anchor="middle"><tspan x="332.5" dy="0">No</tspan></text>
+</svg>

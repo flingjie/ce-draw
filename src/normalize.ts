@@ -1,17 +1,113 @@
 /**
- * Style normalizer — applies a ThemeConfig to Excalidraw elements.
+ * Style normalizer + element factory.
  *
- * This is the key to "Style Normalize": no matter how elements are
- * created (Mermaid, manual, library), `normalize()` ensures they all
- * share the same visual identity.
+ * `normalize()` ensures all elements share the same visual identity.
+ * `createElement()` is the single source of truth for element construction.
  */
 
-import type { ExcalidrawElement, ThemeConfig } from "./types.js";
-import { v4 as uuid } from "uuid";
+import type { ExcalidrawElement, ExcalidrawDocument, ThemeConfig } from "./types.js";
+
+// ── ID & Text Helpers ──────────────────────────────────────────
+
+/** Create an element ID using Node.js built-in crypto. */
+export function makeId(): string {
+  return crypto.randomUUID();
+}
+
+/** Estimate text display width. 0.6× for ASCII, 1.0× for CJK/emoji. */
+export function textWidth(content: string, fontSize: number): number {
+  let width = 0;
+  for (const ch of content) {
+    if (/[一-鿿　-〿＀-￯\u{1f300}-\u{1f9ff}]/u.test(ch)) {
+      width += fontSize;
+    } else {
+      width += fontSize * 0.6;
+    }
+  }
+  return width || fontSize;
+}
+
+// ── Element Factory ────────────────────────────────────────────
 
 /**
- * Apply a theme to a single element, normalizing its visual properties.
- * Returns a new element (does not mutate the original).
+ * Shared element factory — the single source of truth for building
+ * Excalidraw element dicts. Every element originates here.
+ */
+export function createElement(
+  type: string,
+  overrides: Record<string, any> = {}
+): ExcalidrawElement {
+  return {
+    id: makeId(),
+    type,
+    x: 0, y: 0, width: 0, height: 0,
+    angle: 0,
+    strokeColor: "#000",
+    backgroundColor: "transparent",
+    fillStyle: "solid",
+    strokeWidth: 2,
+    strokeStyle: "solid",
+    roughness: 1,
+    opacity: 100,
+    groupIds: [],
+    roundness: null,
+    boundElements: null,
+    locked: false,
+    strokeSharpness: "round",
+    isDeleted: false,
+    link: null,
+    updated: 0,
+    seed: Math.floor(Math.random() * 0x7fffffff),
+    version: 2,
+    versionNonce: 0,
+    frameId: null,
+    ...overrides,
+  } as unknown as ExcalidrawElement;
+}
+
+/** Create a text element with text-specific defaults. */
+export function createTextElement(
+  content: string,
+  x: number,
+  y: number,
+  fontSize: number,
+  fontFamily: number,
+  containerId: string | null = null
+): ExcalidrawElement {
+  return createElement("text", {
+    x, y,
+    width: textWidth(content, fontSize),
+    height: fontSize * 1.5,
+    text: content,
+    fontSize,
+    fontFamily,
+    textAlign: "center",
+    verticalAlign: "middle",
+    containerId,
+    autoResize: true,
+    lineHeight: 1.25,
+    baseline: fontSize * 0.8,
+    originalText: content,
+    strokeColor: "#1F2937",
+    strokeWidth: 1,
+  });
+}
+
+/** Build the appState section of an .excalidraw document. */
+export function buildAppState(theme: ThemeConfig): ExcalidrawDocument["appState"] {
+  return {
+    gridSize: null,
+    viewBackgroundColor: theme.background,
+    currentItemFontFamily: theme.fontFamily,
+    currentItemFontSize: theme.fontSize,
+    theme: theme.name === "dark" ? "dark" : "light",
+  };
+}
+
+// ── Style Normalization ────────────────────────────────────────
+
+/**
+ * Apply a theme to a single element. Returns a new element.
  */
 export function normalizeElement(
   el: ExcalidrawElement,
@@ -33,26 +129,15 @@ export function normalizeElement(
     seed: Math.floor(Math.random() * 0x7fffffff),
   };
 
-  // Shape-specific normalization
   switch (el.type) {
     case "rectangle":
     case "ellipse":
     case "diamond":
-      return {
-        ...base,
-        strokeColor: stroke,
-        backgroundColor: bg,
-        roundness: theme.roundness,
-      };
+      return { ...base, strokeColor: stroke, backgroundColor: bg, roundness: theme.roundness };
 
     case "arrow":
     case "line":
-      return {
-        ...base,
-        strokeColor: theme.arrow,
-        backgroundColor: "transparent",
-        roundness: null,
-      };
+      return { ...base, strokeColor: theme.arrow, backgroundColor: "transparent", roundness: null };
 
     case "text":
       return {
@@ -80,8 +165,7 @@ export function normalizeElement(
 }
 
 /**
- * Apply a theme to all elements in an array.
- * Color-cycles shapes while keeping arrows and text consistent.
+ * Apply a theme to all elements. Color-cycles shapes.
  */
 export function normalize(
   elements: ExcalidrawElement[],
@@ -94,11 +178,4 @@ export function normalize(
     if (isShape) colorIndex++;
     return normalized;
   });
-}
-
-/**
- * Create an element ID. Wraps uuid for consistency.
- */
-export function makeId(): string {
-  return uuid();
 }

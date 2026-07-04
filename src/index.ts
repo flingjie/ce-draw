@@ -6,7 +6,7 @@
  * 1. Mermaid → Excalidraw (recommended for structured diagrams):
  *    ```ts
  *    import { mermaidToExcalidraw } from "ec-draw";
- *    const doc = await mermaidToExcalidraw("flowchart TD\n  A --> B", "sketchy");
+ *    const doc = mermaidToExcalidraw("flowchart TD\n  A --> B", "sketchy");
  *    ```
  *
  * 2. Programmatic API (for custom layouts):

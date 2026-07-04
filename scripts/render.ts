@@ -13,7 +13,7 @@ import { readFileSync, writeFileSync } from "fs";
 import { resolve } from "path";
 import { mermaidToExcalidraw } from "../dist/index.js";
 
-async function main() {
+function main() {
   const args = process.argv.slice(2);
 
   let inputPath = "";
@@ -44,7 +44,7 @@ async function main() {
     process.exit(1);
   }
 
-  const doc = await mermaidToExcalidraw(mermaidText, themeName);
+  const doc = mermaidToExcalidraw(mermaidText, themeName);
 
   const outPath = outputPath.endsWith(".excalidraw") ? outputPath : outputPath + ".excalidraw";
   writeFileSync(outPath, JSON.stringify(doc, null, 2), "utf-8");
@@ -52,7 +52,4 @@ async function main() {
   console.log(`Saved: ${resolve(outPath)}`);
 }
 
-main().catch((err) => {
-  console.error("Error:", err.message);
-  process.exit(1);
-});
+main();

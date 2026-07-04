@@ -1,86 +1,79 @@
 # ec-draw
 
-Generate hand-drawn Excalidraw diagrams from Mermaid syntax. A skill for
-Claude Code and Codex that produces themed `.excalidraw` files.
+通过 AI 生成高质量 Excalidraw 手绘风格图表。将 Mermaid 语法转换为主题化的 `.excalidraw` 文件。
+
+## 对话方式使用
+
+**Codex / Claude Code 中直接说：**
+
+> "画一个用户登录的流程图，包含验证和错误处理"
+
+AI 会自动：
+1. 生成 Mermaid 语法
+2. 调用 `npx tsx scripts/render.ts` 渲染
+3. 返回 `.excalidraw` 文件
+
+**或者用 Mermaid 语法：**
+
+> "用 flowchart TD 画：Login → Valid? → {Yes} Dashboard / {No} Error → Login"
+
+**架构图：**
+
+> "画一个三层架构：CDN → Load Balancer → 3 个 Web Server → API Server → PostgreSQL + Redis"
+
+## 安装
 
 ```bash
-echo "flowchart TD
-    A[Login] --> B{Valid?}
-    B -->|Yes| C[Dashboard]
-    B -->|No| D[Error]" | npx tsx scripts/render.ts -o flow.excalidraw -t sketchy
+npm install ec-draw
 ```
 
-## Features
+## CLI
 
-- **Mermaid → Excalidraw** — dagre layout engine, themed styling
-- **4 themes** — sketchy, professional, dark, colorful
-- **Style normalization** — consistent roughness, palette, font
-- **Icon library** — 10 reusable presets
-- **Skill mode** — SKILL.md + scripts/ + references/
+```bash
+npx tsx scripts/render.ts -i diagram.mmd -o output.excalidraw -t sketchy
+echo "flowchart TD\n  A[开始] --> B[结束]" | npx tsx scripts/render.ts -o flow.excalidraw
+```
 
-## Project Structure
+## 主题
+
+| 主题 | 风格 | 适用场景 |
+|------|------|----------|
+| `sketchy` | 手绘、暖色调 | 头脑风暴 |
+| `professional` | 干净线条、蓝灰色系 | 架构文档 |
+| `dark` | 暗色背景、霓虹色 | 终端展示 |
+| `colorful` | 明亮原色 | 教学演示 |
+
+## 支持的图表类型
+
+| 类型 | Mermaid 语法 | 示例 |
+|------|-------------|------|
+| 流程图 | `flowchart TD/LR` | 决策树、流程 |
+| 序列图 | `sequenceDiagram` | API 交互 |
+| ER 图 | `erDiagram` | 数据模型 |
+| 类图 | `classDiagram` | UML |
+
+## 项目结构
 
 ```
 ec-draw/
-├── SKILL.md                     # Skill definition
-├── scripts/
-│   └── render.ts                # Main renderer: Mermaid → Excalidraw
-├── src/                         # TypeScript library
-│   ├── mermaid.ts               # Mermaid parser + dagre layout
-│   ├── diagram.ts               # Diagram builder API
-│   ├── normalize.ts             # Style normalization
-│   ├── themes.ts                # 4 visual themes
-│   ├── library.ts               # Icon library
-│   └── index.ts                 # Public API
-├── references/
-│   ├── mermaid_syntax.md        # Mermaid syntax reference
-│   └── excalidraw_schema.md     # Excalidraw JSON schema
-├── templates/                   # Prompt templates per diagram type
-├── examples/                    # Example .excalidraw outputs
-├── library/
-│   └── icons.json               # Icon presets
-└── README.md
+├── SKILL.md              Skill 定义
+├── scripts/render.ts     渲染入口
+├── src/                  TypeScript 库
+│   ├── mermaid.ts        Mermaid 解析 + dagre 布局
+│   ├── diagram.ts        Diagram Builder API
+│   ├── normalize.ts      风格统一
+│   ├── themes.ts         4 套主题
+│   └── library.ts        图标库
+├── templates/            Prompt 模板
+├── references/           Mermaid/excalidraw 格式参考
+├── examples/             示例 .excalidraw 文件
+└── library/              图标预设
 ```
 
-## Quick Start
+## 文档
 
-```bash
-# From Mermaid file
-npx tsx scripts/render.ts -i diagram.mmd -o output.excalidraw -t sketchy
-
-# Pipe Mermaid text
-echo "flowchart TD\n  A[Start] --> B[End]" | npx tsx scripts/render.ts -o flow.excalidraw
-
-# From stdin
-npx tsx scripts/render.ts -t professional < diagram.mmd
-```
-
-## Themes
-
-| Theme | Look | Background |
-|-------|------|------------|
-| `sketchy` | Hand-drawn, warm earth tones | #F8F5F0 |
-| `professional` | Clean lines, blue/gray | #FFFFFF |
-| `dark` | Dark bg, neon accents | #111827 |
-| `colorful` | Bright primaries | #FFFBEB |
-
-## API
-
-```ts
-import { mermaidToExcalidraw, Diagram } from "./src/index.js";
-
-// Mermaid → Excalidraw
-const doc = await mermaidToExcalidraw(`
-flowchart TD
-    A[Login] --> B{Valid?}
-`, "sketchy");
-
-// Diagram builder
-const d = new Diagram("professional", { cols: 3 });
-d.addBox("API", { row: 0, col: 0, span: 3 });
-d.addArrow("API", "Auth");
-d.save("arch.excalidraw");
-```
+- [架构说明](docs/architecture.md) — 数据流、模块设计、扩展指南
+- [API 参考](docs/api.md) — 完整 API 文档（mermaidToExcalidraw / Diagram / 主题 / 图标）
 
 ## License
 
