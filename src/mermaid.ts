@@ -2,7 +2,8 @@
  * Mermaid → Excalidraw converter.
  *
  * Pure Node.js — no browser or DOM needed. Parses Mermaid syntax,
- * runs dagre layout, builds themed Excalidraw elements.
+ * routes to the best layout engine (dagre/sequence/grid/pipeline),
+ * builds themed Excalidraw elements.
  *
  * Supported: flowchart, sequenceDiagram, erDiagram, classDiagram
  */
@@ -17,8 +18,6 @@ import {
 } from "./normalize.js";
 import { routeLayout } from "./layout/router.js";
 import { routeArrow } from "./layout/dagre.js";
-import { sequenceLayout } from "./layout/sequence.js";
-import type { LayoutNode, LayoutEdge } from "./layout/types.js";
 
 // ── Types ──────────────────────────────────────────────────────
 

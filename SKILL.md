@@ -81,7 +81,39 @@ All output follows these principles:
 - **Rounded corners** on shapes (type 3) for a friendly look
 - **Color cycling** — each box gets the next color in the theme palette
 - **Bound text** — labels are proper Excalidraw text elements bound to their containers
-- **dagre layout** — same layout engine Mermaid uses, for professional node positioning
+- **Smart layout** — layout router auto-selects the best engine per diagram type
+
+## Layout Engines
+
+ec-draw includes 4 layout engines with a smart router that auto-selects the right one:
+
+| Diagram Type | Engine | Behavior |
+|-------------|--------|----------|
+| `flowchart` TB/LR/RL/BT | **dagre** | Auto-layout with dagre, same engine Mermaid uses |
+| `sequence` | **sequence** | Participant boxes (dagre) + lifelines + message slots |
+| `er` / `class` | **dagre** | Entity/class boxes with dagre positioning |
+| `pipeline` / `workflow` | **pipeline** | Linear equidistant stages (CI/CD, deployment flows) |
+| `architecture` / `arch` | **grid** | Manual row×column grid layout |
+
+### Using the router directly
+
+```ts
+import { routeLayout } from "ec-draw";
+
+const layout = routeLayout("pipeline", nodes, edges, { direction: "LR" });
+// layout.positions → Map<string, {x, y, width, height}>
+// layout.type → "pipeline"
+```
+
+### Using individual engines
+
+```ts
+import { dagreLayout, gridLayout, pipelineLayout } from "ec-draw";
+
+const dagreResult = dagreLayout(nodes, edges, { direction: "TB" });
+const gridResult = gridLayout(nodes, edges, { cols: 4, cellW: 160 });
+const pipeResult = pipelineLayout(nodes, edges, { direction: "LR", stageGap: 60 });
+```
 
 ## Templates
 
