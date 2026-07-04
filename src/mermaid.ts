@@ -14,7 +14,6 @@ import {
   createElement,
   createTextElement,
   buildAppState,
-  normalize,
   textWidth,
 } from "./normalize.js";
 
@@ -476,14 +475,11 @@ export function mermaidToExcalidraw(
     }
   }
 
-  // Apply theme normalization (single pass)
-  const normalized = normalize(elements, theme);
-
   return {
     type: "excalidraw",
     version: 2,
     source: "https://excalidraw.com",
-    elements: normalized,
+    elements,
     appState: buildAppState(theme),
     files: {},
   };

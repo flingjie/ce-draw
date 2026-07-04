@@ -10,7 +10,7 @@
 
 AI 会自动：
 1. 生成 Mermaid 语法
-2. 调用 `npx tsx scripts/render.ts` 渲染
+2. 调用 `node dist/cli.js mermaid` 渲染
 3. 返回 `.excalidraw` 文件
 
 **或者用 Mermaid 语法：**
@@ -30,8 +30,8 @@ npm install ec-draw
 ## CLI
 
 ```bash
-npx tsx scripts/render.ts -i diagram.mmd -o output.excalidraw -t sketchy
-echo "flowchart TD\n  A[开始] --> B[结束]" | npx tsx scripts/render.ts -o flow.excalidraw
+node dist/cli.js mermaid diagram.mmd -o output.excalidraw -t sketchy
+echo "flowchart TD\n  A[开始] --> B[结束]" | node dist/cli.js mermaid - -o flow.excalidraw
 ```
 
 ## 主题
@@ -57,13 +57,13 @@ echo "flowchart TD\n  A[开始] --> B[结束]" | npx tsx scripts/render.ts -o fl
 ```
 ec-draw/
 ├── SKILL.md              Skill 定义
-├── scripts/render.ts     渲染入口
 ├── src/                  TypeScript 库
 │   ├── mermaid.ts        Mermaid 解析 + dagre 布局
 │   ├── diagram.ts        Diagram Builder API
 │   ├── normalize.ts      风格统一
 │   ├── themes.ts         4 套主题
-│   └── library.ts        图标库
+│   ├── library.ts        图标库
+│   └── cli.ts            CLI 入口
 ├── templates/            Prompt 模板
 ├── references/           Mermaid/excalidraw 格式参考
 ├── examples/             示例 .excalidraw 文件

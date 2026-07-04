@@ -16,7 +16,7 @@ Generate themed, hand-drawn `.excalidraw` files from Mermaid syntax.
 
 1. Understand the user's diagram request
 2. Write Mermaid syntax (see reference below)
-3. Save to a temp file, then run: `npx tsx scripts/render.ts -i /tmp/diagram.mmd -o OUTPUT.excalidraw -t THEME`
+3. Save to a temp file, then run: `node dist/cli.js mermaid /tmp/diagram.mmd -o OUTPUT.excalidraw -t THEME`
 4. Or use the API: `mermaidToExcalidraw(mermaidText, "sketchy")`
 5. Report the output path
 
@@ -33,31 +33,9 @@ flowchart TD
 `, "sketchy");
 ```
 
-## Mermaid Syntax Reference
+## Mermaid Syntax
 
-```
-flowchart TD              Top→Down (also TB, LR, RL, BT)
-    A[rectangle label]    Rectangle node
-    B{diamond label}      Diamond (decision)
-    C((circle label))     Circle/ellipse
-    D[(database label)]   Database cylinder
-    A --> B               Solid arrow
-    A -->|label| B        Labeled arrow
-    A -.-> B              Dotted arrow
-
-sequenceDiagram
-    A->>B: Request        Solid arrow (forward)
-    B-->>A: Response      Dashed arrow (return)
-
-erDiagram
-    A ||--o{ B : label    Relationship
-    A { type field }      Entity attributes
-
-classDiagram
-    A <|-- B              Inheritance
-    A : +type field       Attribute
-    A: +method()          Method
-```
+Full reference: `references/mermaid_syntax.md` — covers flowchart, sequence, ER, and class diagram syntax with examples.
 
 ## Themes
 

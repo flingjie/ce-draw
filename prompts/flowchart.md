@@ -14,6 +14,13 @@
 - Use distinct shapes: rect for process, diamond for decision, rounded for start/end
 - Hand-drawn roughness: 1
 
-## Mermaid Pattern
+## Mermaid Example
 
-See `templates/flowchart.md` for full Mermaid examples.
+```mermaid
+flowchart TD
+    A[Start] --> B{Valid?}
+    B -->|Yes| C[Process]
+    B -->|No| D[Error]
+    C --> E[End]
+    D --> E
+```

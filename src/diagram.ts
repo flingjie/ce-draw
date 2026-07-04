@@ -11,7 +11,7 @@ import { writeFileSync } from "fs";
 import { resolve } from "path";
 import type { ExcalidrawElement, ExcalidrawDocument, ShapeType } from "./types.js";
 import { getTheme, type ThemeConfig } from "./themes.js";
-import { normalizeElement, createElement, createTextElement, buildAppState } from "./normalize.js";
+import { normalizeElement, createElement, createTextElement, buildAppState, textWidth } from "./normalize.js";
 import { ICONS } from "./library.js";
 
 export interface BoxOptions {
@@ -107,7 +107,7 @@ export class Diagram {
       const textEl = normalizeElement(
         createTextElement(
           name,
-          x + w / 2 - name.length * this.theme.fontSize * 0.3,
+          x + w / 2 - textWidth(name, this.theme.fontSize) / 2,
           y + h / 2 - this.theme.fontSize * 0.6,
           this.theme.fontSize,
           this.theme.fontFamily,
@@ -164,7 +164,7 @@ export class Diagram {
       const textEl = normalizeElement(
         createTextElement(
           opts.label,
-          fx + dx / 2 - opts.label.length * this.theme.fontSize * 0.3,
+          fx + dx / 2 - textWidth(opts.label, 14) / 2,
           fy + dy / 2 - this.theme.fontSize * 1.2,
           14,
           this.theme.fontFamily,

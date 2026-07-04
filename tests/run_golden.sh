@@ -21,7 +21,7 @@ for input in tests/input/*.mmd; do
 import { mermaidToExcalidraw } from './dist/index.js';
 import { readFileSync, writeFileSync } from 'fs';
 const m = readFileSync('$input', 'utf-8').trim();
-const doc = await mermaidToExcalidraw(m, 'sketchy');
+const doc = mermaidToExcalidraw(m, 'sketchy');
 writeFileSync('$actual', JSON.stringify(doc, null, 2));
 " 2>/dev/null
 

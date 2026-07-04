@@ -15,6 +15,14 @@
 - Consistent arrow styles: solid for sync, dashed for async
 - Hand-drawn roughness: 1
 
-## Mermaid Pattern
+## Mermaid Example
 
-See `templates/sequence.md` for full Mermaid examples.
+```mermaid
+sequenceDiagram
+    Client->>API: POST /login
+    API->>Auth: validate(token)
+    Auth->>DB: SELECT user
+    DB-->>Auth: user row
+    Auth-->>API: 200 OK
+    API-->>Client: JWT token
+```

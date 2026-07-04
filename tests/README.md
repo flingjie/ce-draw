@@ -17,7 +17,7 @@ bash tests/run_golden.sh
 
 # Add a new golden test
 cp new_diagram.mmd tests/input/
-npx tsx scripts/render.ts -i tests/input/new_diagram.mmd -o tests/expected/new_diagram.excalidraw
+node dist/cli.js mermaid tests/input/new_diagram.mmd -o tests/expected/new_diagram.excalidraw
 ```
 
 ## What Gets Tested

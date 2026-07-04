@@ -130,6 +130,24 @@ export const ICONS: Record<string, IconDef> = {
       createElement("ellipse", { x: x + 20, y: y + 5, width: 10, height: 15, strokeColor: s, backgroundColor: b }),
     ];
   }),
+
+  message_queue: icon(100, 50, (x, y, s, b) => {
+    const w = 100;
+    return [
+      createElement("rectangle", { x, y, width: w, height: 50, strokeColor: s, backgroundColor: b, roundness: { type: 2 } }),
+      createElement("line", { x: x + 10, y: y + 15, width: w - 20, height: 0, points: [{x:0,y:0},{x:w-20,y:0}], strokeColor: s, strokeWidth: 1, strokeStyle: "dashed" }),
+      createElement("line", { x: x + 10, y: y + 27, width: w - 20, height: 0, points: [{x:0,y:0},{x:w-20,y:0}], strokeColor: s, strokeWidth: 1, strokeStyle: "dashed" }),
+      createElement("line", { x: x + 10, y: y + 39, width: w - 20, height: 0, points: [{x:0,y:0},{x:w-20,y:0}], strokeColor: s, strokeWidth: 1, strokeStyle: "dashed" }),
+    ];
+  }),
+
+  firewall: icon(40, 80, (x, y, s, b) => {
+    return [
+      createElement("rectangle", { x, y, width: 13, height: 80, strokeColor: s, backgroundColor: b, strokeWidth: 3, roughness: 0 }),
+      createElement("rectangle", { x: x + 27, y, width: 13, height: 80, strokeColor: s, backgroundColor: b, strokeWidth: 3, roughness: 0 }),
+      createElement("line", { x: x + 20, y: y + 10, width: 0, height: 60, points: [{x:0,y:0},{x:0,y:60}], strokeColor: s, strokeWidth: 1, strokeStyle: "dashed" }),
+    ];
+  }),
 };
 
 export function listIcons(): string[] {

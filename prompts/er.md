@@ -14,6 +14,18 @@
 - Consistent entity widths
 - Hand-drawn roughness: 1
 
-## Mermaid Pattern
+## Mermaid Example
 
-See `templates/er.md` for full Mermaid examples.
+```mermaid
+erDiagram
+    CUSTOMER ||--o{ ORDER : places
+    ORDER ||--|{ LINE_ITEM : contains
+    CUSTOMER {
+        int id PK
+        string name
+    }
+    ORDER {
+        int id PK
+        int customer_id FK
+    }
+```

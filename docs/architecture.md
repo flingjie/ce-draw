@@ -83,7 +83,7 @@ src/
 
 ```
 用户 → SKILL.md 触发 → AI 读 templates/ → 生成 Mermaid
-→ npx tsx scripts/render.ts → .excalidraw
+→ node dist/cli.js mermaid → .excalidraw
 ```
 
 优势：自动布局、无需手写代码
