@@ -7,8 +7,7 @@
  * Supported: flowchart, sequenceDiagram, erDiagram, classDiagram
  */
 
-import dagre from "dagre";
-import type { ExcalidrawElement, ExcalidrawDocument } from "./types.js";
+import type { ExcalidrawElement, ExcalidrawDocument, Direction } from "./types.js";
 import { getTheme } from "./themes.js";
 import {
   createElement,
@@ -16,11 +15,14 @@ import {
   buildAppState,
   textWidth,
 } from "./normalize.js";
+import { routeLayout } from "./layout/router.js";
+import { routeArrow } from "./layout/dagre.js";
+import { sequenceLayout } from "./layout/sequence.js";
+import type { LayoutNode, LayoutEdge } from "./layout/types.js";
 
 // ── Types ──────────────────────────────────────────────────────
 
 type Shape = "rectangle" | "diamond" | "ellipse" | "roundrect";
-type Direction = "TB" | "LR" | "RL" | "BT";
 
 interface ParsedNode {
   id: string;
@@ -199,62 +201,6 @@ function parseMermaid(text: string): ParsedDiagram {
   throw new Error(`Unknown diagram type: "${first}". Supported: flowchart, sequenceDiagram, erDiagram, classDiagram`);
 }
 
-// ── Dagre Layout ───────────────────────────────────────────────
-
-function runDagreLayout(nodes: ParsedNode[], edges: ParsedEdge[], direction: Direction = "TB") {
-  const g = new dagre.graphlib.Graph({ multigraph: true });
-  g.setGraph({ rankdir: direction, nodesep: 60, ranksep: 70, edgesep: 30, marginx: 40, marginy: 40 });
-  g.setDefaultEdgeLabel(() => ({}));
-
-  for (const n of nodes) {
-    const w = n.shape === "diamond" ? 140 : 150;
-    const h = n.shape === "diamond" ? 90 : 65;
-    g.setNode(n.id, { label: n.label, width: w, height: h });
-  }
-  for (const e of edges) g.setEdge(e.from, e.to, {});
-
-  dagre.layout(g);
-
-  const positions = new Map<string, { x: number; y: number; width: number; height: number }>();
-  for (const nid of g.nodes()) {
-    const n = g.node(nid);
-    positions.set(nid, { x: n.x - n.width / 2, y: n.y - n.height / 2, width: n.width, height: n.height });
-  }
-  return positions;
-}
-
-// ── Arrow Routing ──────────────────────────────────────────────
-
-function routeArrow(
-  fromPos: { x: number; y: number; width: number; height: number },
-  toPos: { x: number; y: number; width: number; height: number },
-  direction: Direction
-): { fx: number; fy: number; tx: number; ty: number } {
-  if (direction === "TB") {
-    return {
-      fx: fromPos.x + fromPos.width / 2, fy: fromPos.y + fromPos.height,
-      tx: toPos.x + toPos.width / 2,   ty: toPos.y,
-    };
-  }
-  if (direction === "BT") {
-    return {
-      fx: fromPos.x + fromPos.width / 2, fy: fromPos.y,
-      tx: toPos.x + toPos.width / 2,   ty: toPos.y + toPos.height,
-    };
-  }
-  if (direction === "RL") {
-    return {
-      fx: fromPos.x,                     fy: fromPos.y + fromPos.height / 2,
-      tx: toPos.x + toPos.width,        ty: toPos.y + toPos.height / 2,
-    };
-  }
-  // LR
-  return {
-    fx: fromPos.x + fromPos.width,      fy: fromPos.y + fromPos.height / 2,
-    tx: toPos.x,                        ty: toPos.y + toPos.height / 2,
-  };
-}
-
 // ── Renderers ──────────────────────────────────────────────────
 
 function buildShape(
@@ -348,8 +294,9 @@ export function mermaidToExcalidraw(
     throw new Error("No nodes found in Mermaid text. Check your syntax.");
   }
 
-  const direction = parsed.direction ?? "TB";
-  const positions = runDagreLayout(parsed.nodes, parsed.edges, direction);
+  const direction: Direction = parsed.direction ?? "TB";
+  const layout = routeLayout(parsed.type, parsed.nodes, parsed.edges, { direction });
+  const positions = layout.positions;
 
   const elements: ExcalidrawElement[] = [];
   let colorIdx = 0;

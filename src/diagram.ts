@@ -13,6 +13,7 @@ import type { ExcalidrawElement, ExcalidrawDocument, ShapeType } from "./types.j
 import { getTheme, type ThemeConfig } from "./themes.js";
 import { normalizeElement, createElement, createTextElement, buildAppState, textWidth } from "./normalize.js";
 import { ICONS } from "./library.js";
+import { gridPosition } from "./layout/grid.js";
 
 export interface BoxOptions {
   row?: number;
@@ -56,12 +57,7 @@ export class Diagram {
   }
 
   private _gridPos(index: number): { x: number; y: number } {
-    const col = index % this._cols;
-    const row = Math.floor(index / this._cols);
-    return {
-      x: 50 + col * (this._cellW + this._gapX),
-      y: 50 + row * (this._cellH + this._gapY),
-    };
+    return gridPosition(index, this._cols, this._cellW, this._cellH, this._gapX, this._gapY);
   }
 
   /** Add a labeled box to the diagram. */

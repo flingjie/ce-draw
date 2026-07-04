@@ -25,6 +25,16 @@ export { getTheme, listThemes, THEMES } from "./themes.js";
 export { normalize, normalizeElement, makeId } from "./normalize.js";
 export { ICONS, listIcons } from "./library.js";
 export type { IconDef } from "./library.js";
+
+// Layout engines + router
+export { routeLayout } from "./layout/router.js";
+export { dagreLayout, routeArrow } from "./layout/dagre.js";
+export { gridLayout, gridPosition } from "./layout/grid.js";
+export { sequenceLayout } from "./layout/sequence.js";
+export type { SequenceMeta } from "./layout/sequence.js";
+export { pipelineLayout } from "./layout/pipeline.js";
+export type { LayoutNode, LayoutEdge, LayoutOptions, LayoutResult } from "./layout/types.js";
+
 export type {
   ExcalidrawElement,
   ExcalidrawDocument,
