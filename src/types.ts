@@ -8,6 +8,15 @@ export interface Point {
   y: number;
 }
 
+export type Direction = "TB" | "LR" | "RL" | "BT";
+
+export interface Position {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface BoundElement {
   id: string;
   type: "arrow" | "text";
