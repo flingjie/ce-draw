@@ -1,0 +1,36 @@
+/**
+ * ec-draw: AI-powered Excalidraw diagram generator.
+ *
+ * Main entry point. Two primary workflows:
+ *
+ * 1. Mermaid → Excalidraw (recommended for structured diagrams):
+ *    ```ts
+ *    import { mermaidToExcalidraw } from "ec-draw";
+ *    const doc = await mermaidToExcalidraw("flowchart TD\n  A --> B", "sketchy");
+ *    ```
+ *
+ * 2. Programmatic API (for custom layouts):
+ *    ```ts
+ *    import { Diagram } from "ec-draw";
+ *    const d = new Diagram("sketchy");
+ *    d.addBox("API Gateway", { row: 0, col: 0, span: 3 });
+ *    d.addArrow("API Gateway", "Auth Service");
+ *    d.save("arch.excalidraw");
+ *    ```
+ */
+
+export { mermaidToExcalidraw } from "./mermaid.js";
+export { Diagram } from "./diagram.js";
+export { getTheme, listThemes, THEMES } from "./themes.js";
+export { normalize, normalizeElement, makeId } from "./normalize.js";
+export { ICONS, listIcons } from "./library.js";
+export type { IconDef } from "./library.js";
+export type {
+  ExcalidrawElement,
+  ExcalidrawDocument,
+  ThemeConfig,
+  TextElement,
+  ArrowElement,
+  FrameElement,
+  Point,
+} from "./types.js";

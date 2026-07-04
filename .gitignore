@@ -1,5 +1,5 @@
-__pycache__/
-*.pyc
-.claude/
-*.egg-info/
+node_modules/
 dist/
+.claude/
+*.pyc
+.idea/
