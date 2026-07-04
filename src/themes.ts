@@ -9,7 +9,7 @@
  */
 
 import type { ThemeConfig } from "./types.js";
-import { loadThemesFromTokens, getSpacing } from "./token_compiler.js";
+import { loadThemesFromTokens } from "./token_compiler.js";
 
 export type { ThemeConfig };
 
