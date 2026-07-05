@@ -20,6 +20,7 @@ interface FlatTokens {
   stroke_roundness: Record<string, number | null>;
   stroke_style: Record<string, string>;
   shadow: Record<string, any>;
+  roles: Record<string, string>;
 }
 
 let _tokens: FlatTokens | null = null;
@@ -47,7 +48,7 @@ function parseTokens(yaml: string): FlatTokens {
   const result: any = {
     colors: {}, shapes: {}, spacing: {}, typography: {},
     stroke_width: {}, stroke_roughness: {}, stroke_roundness: {},
-    stroke_style: {}, shadow: {},
+    stroke_style: {}, shadow: {}, roles: {},
   };
   let section = "";
 
@@ -75,6 +76,8 @@ function parseTokens(yaml: string): FlatTokens {
 
     if (section === "colors" && Array.isArray(val)) {
       result.colors[key] = val as [string, string];
+    } else if (section === "roles") {
+      result.roles[key] = val as string;
     } else if (section === "shapes") {
       const items = rawVal.slice(1, -1).split(",").map((s: string) => s.trim());
       result.shapes[key] = items;
@@ -130,6 +133,12 @@ function compileTheme(name: string, tokens: FlatTokens): ThemeConfig {
     ? tokens.typography.font_family_helvetica
     : tokens.typography.font_family_virgil;
 
+  // Compile role colors: role_name → color_key → [stroke, bg]
+  const roles: Record<string, [string, string]> = {};
+  for (const [roleName, colorKey] of Object.entries(tokens.roles)) {
+    roles[roleName] = resolveColor(colorKey as string, tokens);
+  }
+
   return {
     name,
     shapes,
@@ -144,6 +153,7 @@ function compileTheme(name: string, tokens: FlatTokens): ThemeConfig {
     fontSize: tokens.typography.font_size_default ?? 16,
     fillStyle: "solid",
     strokeStyle: "solid",
+    roles: Object.keys(roles).length > 0 ? roles : undefined,
   } as ThemeConfig;
 }
 

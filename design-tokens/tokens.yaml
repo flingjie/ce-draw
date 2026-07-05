@@ -136,3 +136,12 @@ shadow:
   strong_offset_y: 6
   strong_blur: 12
   strong_color: "rgba(0,0,0,0.2)"
+
+# ── Role Colors ────────────────────────────────────────────────
+
+roles:
+  primary: slate
+  secondary: moss
+  gap: brown
+  callout: amber
+  muted: taupe
