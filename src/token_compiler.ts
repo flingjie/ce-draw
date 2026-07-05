@@ -13,7 +13,7 @@ import type { ThemeConfig } from "./types.js";
 interface FlatTokens {
   colors: Record<string, string | [string, string]>;
   shapes: Record<string, string[]>;
-  roles: Record<string, [string, string]>;
+  roles: Record<string, string>;
   spacing: Record<string, number>;
   typography: Record<string, number>;
   stroke_width: Record<string, number>;
@@ -21,7 +21,6 @@ interface FlatTokens {
   stroke_roundness: Record<string, number | null>;
   stroke_style: Record<string, string>;
   shadow: Record<string, any>;
-  roles: Record<string, string>;
 }
 
 let _tokens: FlatTokens | null = null;
@@ -47,7 +46,7 @@ function loadTokens(): FlatTokens {
 
 function parseTokens(yaml: string): FlatTokens {
   const result: any = {
-    colors: {}, shapes: {}, roles: {}, spacing: {}, typography: {},
+    colors: {}, shapes: {}, spacing: {}, typography: {},
     stroke_width: {}, stroke_roughness: {}, stroke_roundness: {},
     stroke_style: {}, shadow: {}, roles: {},
   };
@@ -82,8 +81,6 @@ function parseTokens(yaml: string): FlatTokens {
     } else if (section === "shapes") {
       const items = rawVal.slice(1, -1).split(",").map((s: string) => s.trim());
       result.shapes[key] = items;
-    } else if (section === "roles" && Array.isArray(val)) {
-      result.roles[key] = val as [string, string];
     } else if (section === "stroke_roundness") {
       result.stroke_roundness[key] = val === null ? null : typeof val === "number" ? val : null;
     } else {
@@ -145,7 +142,6 @@ function compileTheme(name: string, tokens: FlatTokens): ThemeConfig {
   return {
     name,
     shapes,
-    roles: { ...tokens.roles },  // semantic role colors
     arrow: String(tokens.colors[`arrow_${name}`] || "#6B7280"),
     text: String(tokens.colors[`text_${name}`] || "#1F2937"),
     accent: String(tokens.colors[`accent_${name}`] || "#2563EB"),
