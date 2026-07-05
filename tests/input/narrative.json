@@ -1,0 +1,28 @@
+{
+  "title": "MAP vs TERRITORY",
+  "sections": [
+    {
+      "role": "map",
+      "heading": "MAP — Your mental model",
+      "items": [
+        { "title": "Prompt", "subtitle": "What you ask" },
+        { "title": "Context", "subtitle": "What it remembers" }
+      ]
+    },
+    {
+      "role": "territory",
+      "heading": "TERRITORY — The real world",
+      "items": [
+        { "title": "Codebase", "subtitle": "Real files" },
+        { "title": "Constraints", "subtitle": "Hard limits" }
+      ]
+    }
+  ],
+  "transitions": [
+    { "from": "section-0", "to": "section-1", "label": "unknowns gap" }
+  ],
+  "callout": {
+    "text": "Bottleneck: clarifying unknowns",
+    "role": "callout"
+  }
+}

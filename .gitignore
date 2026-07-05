@@ -5,3 +5,4 @@ dist/
 .idea/
 examples/*_preview.svg
 .DS_Store
+output/
