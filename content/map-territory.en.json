@@ -1,0 +1,31 @@
+{
+  "title": "MAP vs TERRITORY",
+  "sections": [
+    {
+      "role": "map",
+      "heading": "MAP — Your mental model",
+      "subtitle": "What you think the world is",
+      "items": [
+        { "title": "Prompt", "subtitle": "What you ask the model", "icon": "document" },
+        { "title": "Context", "subtitle": "What the model remembers", "icon": "globe" }
+      ]
+    },
+    {
+      "role": "territory",
+      "heading": "TERRITORY — The real world",
+      "subtitle": "What actually exists",
+      "items": [
+        { "title": "Codebase", "subtitle": "Real files and logic", "icon": "lock" },
+        { "title": "Constraints", "subtitle": "Physical and business limits", "icon": "server" }
+      ]
+    }
+  ],
+  "transitions": [
+    { "from": "section-0", "to": "section-1", "label": "cannot fully describe → must discover" }
+  ],
+  "callout": {
+    "icon": "fire",
+    "text": "Today's bottleneck is not model capability — it's your ability to clarify unknowns.",
+    "role": "callout"
+  }
+}

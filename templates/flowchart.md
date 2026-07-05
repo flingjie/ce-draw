@@ -1,9 +1,46 @@
 # Flowchart Template
 
-Use when the user asks for a flowchart, process diagram, decision tree,
-state machine, or workflow.
+Decision trees, process flows, and branching logic. DAG structure with
+automatic dagre layout.
 
-## JSON Descriptor Approach (Recommended for structured flows)
+Belongs to `flow` archetype.
+
+## When to use
+
+- Process workflows, decision trees
+- Authentication flows, validation logic
+- If/else branching, state machines
+- Any linear process with branches
+
+## Information slots (required)
+
+- [ ] Start node (rectangle or ellipse)
+- [ ] 1+ decision nodes (diamond shape)
+- [ ] End/terminal nodes for each branch
+- [ ] Edge labels on decision branches (Yes/No, Success/Failure)
+
+## Visual hierarchy
+
+1. Start at top, outcomes at bottom
+2. Decision diamonds split the flow
+3. Branch labels on arrows (keep ≤ 10 chars)
+4. Terminal nodes use ellipse shape
+
+## Layout rules
+
+- Direction: **TB** (top-to-bottom default)
+- `flowchart` type → dagre engine (auto-layout)
+- Diamond shape for decisions
+- Max 20 nodes for readability
+- Keep labels short (≤ 20 chars) to avoid dagre overlap
+
+## Anti-patterns
+
+- ❌ Missing edge labels on decision branches
+- ❌ Too many branches from one node (max 3)
+- ❌ Circular loops without clear entry/exit
+
+## Recommended API
 
 ```ts
 import { renderDiagram } from "ec-draw";
@@ -12,11 +49,11 @@ const doc = renderDiagram({
   type: "flowchart",
   direction: "TB",
   nodes: [
-    { id: "Start", label: "Start", shape: "rectangle" },
-    { id: "Input", label: "Get Input", shape: "rectangle" },
+    { id: "Start", label: "Start", shape: "ellipse" },
+    { id: "Input", label: "Get Input" },
     { id: "Validate", label: "Valid?", shape: "diamond" },
-    { id: "Process", label: "Process", shape: "rectangle" },
-    { id: "Error", label: "Show Error", shape: "rectangle" },
+    { id: "Process", label: "Process" },
+    { id: "Error", label: "Show Error" },
     { id: "End", label: "End", shape: "ellipse" },
   ],
   edges: [
@@ -30,61 +67,16 @@ const doc = renderDiagram({
 }, "sketchy");
 ```
 
-### Supported shapes
+## Supported shapes
 
-| shape | visual |
-|-------|--------|
-| `rectangle` | Rectangle (default) |
-| `diamond` | Diamond (decisions) |
-| `ellipse` | Ellipse (start/end) |
-| `roundrect` | Rounded rectangle |
+| shape | visual | use |
+|-------|--------|-----|
+| `rectangle` | Rectangle | Default |
+| `diamond` | Diamond | Decisions |
+| `ellipse` | Ellipse | Start/end |
+| `roundrect` | Rounded rectangle | Sub-process |
 
-### Branching Flow
+## Golden reference
 
-```ts
-const doc = renderDiagram({
-  type: "flowchart",
-  direction: "TB",
-  nodes: [
-    { id: "Start", label: "Start" },
-    { id: "Check", label: "Type?", shape: "diamond" },
-    { id: "HandleA", label: "Handle A" },
-    { id: "HandleB", label: "Handle B" },
-    { id: "HandleC", label: "Handle C" },
-    { id: "Done", label: "Done" },
-  ],
-  edges: [
-    { from: "Start", to: "Check" },
-    { from: "Check", to: "HandleA", label: "A" },
-    { from: "Check", to: "HandleB", label: "B" },
-    { from: "Check", to: "HandleC", label: "C" },
-    { from: "HandleA", to: "Done" },
-    { from: "HandleB", to: "Done" },
-    { from: "HandleC", to: "Done" },
-  ],
-}, "sketchy");
-```
-
-## Diagram Builder Approach (for custom layouts)
-
-```ts
-import { Diagram } from "ec-draw";
-
-const d = new Diagram("sketchy", { cols: 1, cellW: 200, cellH: 70, gapY: 50 });
-
-const steps = ["Start", "Validate Input", "Process", "Save", "End"];
-for (let i = 0; i < steps.length; i++) {
-  const shape = steps[i].endsWith("?") ? "diamond" : "rectangle";
-  d.addBox(steps[i], { row: i, col: 0, shape });
-}
-for (let i = 0; i < steps.length - 1; i++) {
-  d.addArrow(steps[i], steps[i + 1]);
-}
-d.save("flowchart.excalidraw");
-```
-
-## Tips
-- Decision nodes: use `shape: "diamond"` in both approaches
-- `cols: 1` for vertical flows, `cols > 1` for branching
-- Keep labels short (≤20 chars) to avoid overlap
-- Use `direction: "LR"` for horizontal flows
+→ `tests/expected/flowchart.excalidraw`
+→ `tests/expected/flowchart_json.excalidraw`

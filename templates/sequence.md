@@ -1,15 +1,51 @@
 # Sequence Diagram Template
 
-Use when the user asks for a sequence diagram, message flow, API interaction,
-timeline, or request/response flow.
+API flows, message passing, and interaction sequences. Participant boxes
+with lifelines and message arrows between them.
 
-## JSON Descriptor Approach (Recommended)
+Belongs to `flow` archetype (sequence engine).
+
+## When to use
+
+- API request/response flows
+- Authentication handshakes
+- Microservice interaction sequences
+- Any ordered message exchange between participants
+
+## Information slots (required)
+
+- [ ] 2–6 participants (client, server, service, database)
+- [ ] Ordered messages between participants
+- [ ] Message labels describing the action
+
+## Visual hierarchy
+
+1. Participant boxes at top (evenly spaced)
+2. Lifelines extending downward
+3. Message arrows between lifelines, stacked vertically in order
+4. Labels on every message arrow
+
+## Layout rules
+
+- Auto-layout by sequence engine
+- Direction: **LR** (left-to-right, horizontal arrows)
+- Messages ordered top-to-bottom in `edges` array
+- Max 6 participants, max ~20 messages
+
+## Anti-patterns
+
+- ❌ Too many participants (max 6)
+- ❌ Missing message labels
+- ❌ Out-of-order messages in edges array
+
+## Recommended API
 
 ```ts
 import { renderDiagram } from "ec-draw";
 
 const doc = renderDiagram({
   type: "sequence",
+  direction: "LR",
   nodes: [
     { id: "Client", label: "Client" },
     { id: "API", label: "API" },
@@ -27,33 +63,6 @@ const doc = renderDiagram({
 }, "professional");
 ```
 
-### Multi-service Example
+## Golden reference
 
-```ts
-const doc = renderDiagram({
-  type: "sequence",
-  nodes: [
-    { id: "Browser", label: "Browser" },
-    { id: "Gateway", label: "Gateway" },
-    { id: "Auth", label: "Auth" },
-    { id: "Service", label: "Service" },
-    { id: "Database", label: "Database" },
-  ],
-  edges: [
-    { from: "Browser", to: "Gateway", label: "HTTPS request" },
-    { from: "Gateway", to: "Auth", label: "verify JWT" },
-    { from: "Auth", to: "Gateway", label: "valid" },
-    { from: "Gateway", to: "Service", label: "proxied request" },
-    { from: "Service", to: "Database", label: "query" },
-    { from: "Database", to: "Service", label: "results" },
-    { from: "Service", to: "Gateway", label: "200 OK" },
-    { from: "Gateway", to: "Browser", label: "JSON response" },
-  ],
-}, "sketchy");
-```
-
-## Tips
-- Participants are the node ids — list them in `nodes`
-- Messages render top-to-bottom in the order in `edges`
-- Use `professional` for API docs, `sketchy` for whiteboarding
-- Each edge gets drawn as a horizontal arrow between participant lifelines
+→ `examples/sequence.excalidraw`

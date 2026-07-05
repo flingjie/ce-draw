@@ -9,9 +9,51 @@ import type { ExcalidrawElement, ExcalidrawDocument, ThemeConfig } from "./types
 
 // ── ID & Text Helpers ──────────────────────────────────────────
 
+/** Multi-line text measurement result. */
+export interface TextMetrics {
+  width: number;       // max line width
+  height: number;      // total text block height
+  lines: string[];     // individual lines after split
+  lineCount: number;   // number of lines
+  lineHeight: number;  // fontSize × line height ratio
+}
+
 /** Create an element ID using Node.js built-in crypto. */
 export function makeId(): string {
   return crypto.randomUUID();
+}
+
+/**
+ * Measure a (potentially multi-line) text string.
+ * Splits on \n, measures each line independently.
+ */
+export function measureText(content: string, fontSize: number, lineHeightRatio: number = 1.25): TextMetrics {
+  const lines = content.split("\n");
+  const lineHeight = fontSize * lineHeightRatio;
+  let maxWidth = 0;
+  for (const line of lines) {
+    let w = 0;
+    for (const ch of line) {
+      w += /[一-鿿　-〿＀-￯\u{1f300}-\u{1f9ff}]/u.test(ch) ? fontSize : fontSize * 0.6;
+    }
+    if (w === 0) w = fontSize; // empty line → at least one char width
+    if (w > maxWidth) maxWidth = w;
+  }
+  return {
+    width: maxWidth || fontSize,
+    height: lines.length * lineHeight,
+    lines,
+    lineCount: lines.length,
+    lineHeight,
+  };
+}
+
+/**
+ * Normalize a label to a single string with \n separators.
+ * Accepts string or string[] for API boundary convenience.
+ */
+export function normalizeLabel(label: string | string[]): string {
+  return Array.isArray(label) ? label.join("\n") : label;
 }
 
 /**
@@ -28,17 +70,9 @@ function hashSeed(id: string): number {
   return Math.abs(hash) % 0x7fffffff;
 }
 
-/** Estimate text display width. 0.6× for ASCII, 1.0× for CJK/emoji. */
+/** Estimate text display width. Delegates to measureText for multi-line awareness. */
 export function textWidth(content: string, fontSize: number): number {
-  let width = 0;
-  for (const ch of content) {
-    if (/[一-鿿　-〿＀-￯\u{1f300}-\u{1f9ff}]/u.test(ch)) {
-      width += fontSize;
-    } else {
-      width += fontSize * 0.6;
-    }
-  }
-  return width || fontSize;
+  return measureText(content, fontSize).width;
 }
 
 // ── Element Factory ────────────────────────────────────────────
@@ -86,12 +120,14 @@ export function createTextElement(
   y: number,
   fontSize: number,
   fontFamily: number,
-  containerId: string | null = null
+  containerId: string | null = null,
+  metrics?: TextMetrics
 ): ExcalidrawElement {
+  const m = metrics ?? measureText(content, fontSize);
   return createElement("text", {
     x, y,
-    width: textWidth(content, fontSize),
-    height: fontSize * 1.5,
+    width: m.width,
+    height: m.height,
     text: content,
     fontSize,
     fontFamily,

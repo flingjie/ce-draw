@@ -21,6 +21,9 @@ const ROUTES: Record<string, LayoutOptions> = {
   workflow:     { direction: "LR" },
   architecture: { cols: 4, cellW: 160, cellH: 80 },
   arch:         { cols: 4, cellW: 160, cellH: 80 },
+  // New archetypes (Phase 4)
+  narrative:    { direction: "TB" },     // vertical section stack (uses grid fallback for JSON descriptor)
+  comparison:   { cols: 2, cellW: 280, cellH: 100, direction: "TB" },  // side-by-side
 };
 
 /** Map diagram type to engine name */
@@ -28,11 +31,13 @@ const ENGINE: Record<string, "dagre" | "grid" | "pipeline"> = {
   flowchart: "dagre",
   er: "dagre",
   class: "dagre",
-  sequence: "dagre",     // dagre for actants, caller adds sequence overlay
+  sequence: "dagre",
   pipeline: "pipeline",
   workflow: "pipeline",
   architecture: "grid",
   arch: "grid",
+  narrative: "grid",     // grid fallback; full narrative layout via narrativeLayout()
+  comparison: "grid",    // grid with 2 cols
 };
 
 /**

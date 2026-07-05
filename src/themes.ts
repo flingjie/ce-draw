@@ -13,6 +13,16 @@ import { loadThemesFromTokens } from "./token_compiler.js";
 
 export type { ThemeConfig };
 
+// ── Default semantic roles (fallback when tokens.yaml unavailable) ─
+
+const DEFAULT_ROLES: Record<string, [string, string]> = {
+  map:       ["#2563EB", "#DBEAFE"], // blue — mental models, prompts
+  territory: ["#059669", "#D1FAE5"], // green — codebase, constraints
+  unknown:   ["#D97706", "#FEF3C7"], // amber — gaps, unknowns, risks
+  callout:   ["#D97706", "#FEF3C7"], // amber — emphasis, bottom-line
+  muted:     ["#9CA3AF", "#F3F4F6"], // neutral — secondary, background
+};
+
 // ── Built-in fallback themes ──────────────────────────────────
 
 const _professional: ThemeConfig = {
@@ -139,13 +149,19 @@ function _loadThemes(): Record<string, ThemeConfig> {
   if (_themes) return _themes;
   try {
     _themes = loadThemesFromTokens();
+    // Ensure every theme has roles (merge defaults, theme-compiled takes precedence)
+    for (const key of Object.keys(_themes)) {
+      if (!_themes[key].roles || Object.keys(_themes[key].roles!).length === 0) {
+        _themes[key].roles = { ...DEFAULT_ROLES };
+      }
+    }
   } catch {
     // Fall back to built-in when design-tokens/ not available
     _themes = {
-      professional: _professional,
-      sketchy: _sketchy,
-      dark: _dark,
-      colorful: _colorful,
+      professional: { ..._professional, roles: { ...DEFAULT_ROLES } },
+      sketchy: { ..._sketchy, roles: { ...DEFAULT_ROLES } },
+      dark: { ..._dark, roles: { ...DEFAULT_ROLES } },
+      colorful: { ..._colorful, roles: { ...DEFAULT_ROLES } },
     };
   }
   return _themes;

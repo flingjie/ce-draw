@@ -1,15 +1,49 @@
-# Entity-Relationship Diagram Template
+# Entity-Relationship / Class Diagram Template
 
-Use when the user asks for an ER diagram, data model, database schema,
-entity relationship, or table relationship diagram.
+Database schemas, data models, class hierarchies. Entities as boxes,
+relationships as labeled edges.
 
-## JSON Descriptor Approach
+Belongs to `flow` archetype (dagre layout).
+
+## When to use
+
+- Database schema, entity-relationship
+- Class hierarchy, UML class diagrams
+- Data modeling, table relationships
+
+## Information slots (required)
+
+- [ ] Entity/class nodes with descriptive labels (singular: `CUSTOMER` not `CUSTOMERS`)
+- [ ] Relationship edges between entities
+- [ ] Edge labels showing cardinality (`1:N`, `N:M`, `places`, `contains`)
+
+## Visual hierarchy
+
+1. Primary entities positioned centrally
+2. Related entities connected outward
+3. Cardinality labels on every edge
+
+## Layout rules
+
+- Direction: **TB**
+- `er` or `class` type → dagre engine
+- Rectangle shape for all entities
+- Max 15 entities for readability
+
+## Anti-patterns
+
+- ❌ Too many entities without logical grouping
+- ❌ Missing cardinality labels on relationships
+- ❌ Plural entity names (use singular)
+
+## Recommended API
 
 ```ts
 import { renderDiagram } from "ec-draw";
 
 const doc = renderDiagram({
   type: "er",
+  direction: "TB",
   nodes: [
     { id: "CUSTOMER", label: "CUSTOMER" },
     { id: "ORDER", label: "ORDER" },
@@ -24,27 +58,6 @@ const doc = renderDiagram({
 }, "professional");
 ```
 
-## Diagram Builder Approach
+## Golden reference
 
-```ts
-import { Diagram } from "ec-draw";
-
-const d = new Diagram("professional", { cols: 4, cellW: 160, cellH: 60, gapX: 40, gapY: 80 });
-
-d.addBox("CUSTOMER", { row: 0, col: 0 });
-d.addBox("ORDER", { row: 0, col: 2 });
-d.addBox("PRODUCT", { row: 2, col: 0 });
-d.addBox("LINE_ITEM", { row: 1, col: 1 });
-
-d.addArrow("CUSTOMER", "ORDER", { label: "1:N" });
-d.addArrow("ORDER", "LINE_ITEM", { label: "1:N" });
-d.addArrow("PRODUCT", "LINE_ITEM", { label: "1:N" });
-
-d.save("er.excalidraw");
-```
-
-## Tips
-- Entity names should be singular: `CUSTOMER` not `CUSTOMERS`
-- Add relationship labels showing cardinality (`1:N`, `N:M`, etc.)
-- Use `professional` for formal data models, `sketchy` for whiteboarding
-- Use `d.addIcon("database", x, y)` for compact entity representation
+→ `tests/expected/flowchart_json.excalidraw` (dagre layout pattern)

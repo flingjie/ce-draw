@@ -13,6 +13,8 @@ import {
   createTextElement,
   buildAppState,
   textWidth,
+  measureText,
+  normalizeLabel,
 } from "./normalize.js";
 import { getSpacing } from "./token_compiler.js";
 import { routeLayout } from "./layout/router.js";
@@ -22,7 +24,7 @@ import { routeArrow } from "./layout/dagre.js";
 
 export interface JSONNode {
   id: string;
-  label: string;
+  label: string | string[];
   shape?: "rectangle" | "diamond" | "ellipse" | "roundrect";
 }
 
@@ -49,6 +51,7 @@ function buildShape(
   bg: string,
   theme: ReturnType<typeof getTheme>
 ): ExcalidrawElement[] {
+  const label = normalizeLabel(node.label);
   const shapeType = node.shape === "roundrect" ? "rectangle" : (node.shape ?? "rectangle");
 
   const el = createElement(shapeType, {
@@ -61,18 +64,20 @@ function buildShape(
     roundness: shapeType === "ellipse" ? null : theme.roundness,
   });
 
-  const label = createTextElement(
-    node.label,
-    pos.x + pos.width / 2 - textWidth(node.label, theme.fontSize) / 2,
-    pos.y + pos.height / 2 - theme.fontSize * 0.6,
+  const m = measureText(label, theme.fontSize);
+  const labelEl = createTextElement(
+    label,
+    pos.x + pos.width / 2 - m.width / 2,
+    pos.y + pos.height / 2 - m.height / 2,
     theme.fontSize,
     theme.fontFamily,
-    el.id
+    el.id,
+    m
   );
-  label.strokeColor = theme.text;
+  labelEl.strokeColor = theme.text;
 
-  el.boundElements = [{ id: label.id, type: "text" }];
-  return [el, label];
+  el.boundElements = [{ id: labelEl.id, type: "text" }];
+  return [el, labelEl];
 }
 
 function buildArrow(
@@ -99,11 +104,13 @@ function buildArrow(
   const result: ExcalidrawElement[] = [arrowEl];
 
   if (edge.label) {
+    const m = measureText(edge.label, 14);
     const lbl = createTextElement(
       edge.label,
-      fx + dx / 2 - textWidth(edge.label, 14) / 2,
+      fx + dx / 2 - m.width / 2,
       fy + dy / 2 - 20,
-      14, theme.fontFamily, arrowEl.id
+      14, theme.fontFamily, arrowEl.id,
+      m
     );
     lbl.strokeColor = theme.text;
     arrowEl.boundElements = [{ id: lbl.id, type: "text" }];
@@ -203,17 +210,21 @@ export function renderDiagram(
     throw new Error("No nodes found in diagram. Must have at least one node.");
   }
 
-  const layout = routeLayout(diagram.type, diagram.nodes, diagram.edges, { direction });
+  // Normalize labels (string[] → string with \n)
+  const nodes = diagram.nodes.map(n => ({ ...n, label: normalizeLabel(n.label) }));
+  const edges = diagram.edges.map(e => ({ ...e, label: e.label ? normalizeLabel(e.label) : undefined }));
+
+  const layout = routeLayout(diagram.type, nodes, edges, { direction });
   const positions = layout.positions;
 
   const elements: ExcalidrawElement[] = [];
   let colorIdx = 0;
 
   if (diagram.type === "sequence") {
-    elements.push(...buildSequence(diagram.nodes, diagram.edges, positions, theme));
+    elements.push(...buildSequence(nodes, edges, positions, theme));
   } else {
     // Build shapes
-    for (const node of diagram.nodes) {
+    for (const node of nodes) {
       const pos = positions.get(node.id);
       if (!pos) continue;
       const [stroke, bg] = theme.shapes[colorIdx % theme.shapes.length];
@@ -222,7 +233,7 @@ export function renderDiagram(
     }
 
     // Build arrows
-    for (const edge of diagram.edges) {
+    for (const edge of edges) {
       const fp = positions.get(edge.from);
       const tp = positions.get(edge.to);
       if (!fp || !tp) continue;

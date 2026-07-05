@@ -6,6 +6,11 @@
 import dagre from "dagre";
 import type { Position } from "../types.js";
 import type { LayoutNode, LayoutEdge, LayoutOptions, LayoutResult } from "./types.js";
+import { measureText } from "../normalize.js";
+
+const MIN_W_RECT = 120, MIN_H_RECT = 50;
+const MIN_W_DIAMOND = 100, MIN_H_DIAMOND = 80;
+const PAD_X = 32, PAD_Y = 24;
 
 export function dagreLayout(
   nodes: LayoutNode[],
@@ -13,6 +18,7 @@ export function dagreLayout(
   opts: LayoutOptions = {}
 ): LayoutResult {
   const direction = opts.direction ?? "TB";
+  const fontSize = opts.fontSize ?? 16;
 
   const g = new dagre.graphlib.Graph({ multigraph: true });
   g.setGraph({
@@ -26,8 +32,12 @@ export function dagreLayout(
   g.setDefaultEdgeLabel(() => ({}));
 
   for (const n of nodes) {
-    const w = n.shape === "diamond" ? 140 : 150;
-    const h = n.shape === "diamond" ? 90 : 65;
+    const isDiamond = n.shape === "diamond";
+    const m = measureText(n.label, fontSize);
+    const minW = isDiamond ? MIN_W_DIAMOND : MIN_W_RECT;
+    const minH = isDiamond ? MIN_H_DIAMOND : MIN_H_RECT;
+    const w = Math.max(minW, m.width + PAD_X);
+    const h = Math.max(minH, m.height + PAD_Y);
     g.setNode(n.id, { label: n.label, width: w, height: h });
   }
   for (const e of edges) g.setEdge(e.from, e.to, {});
