@@ -14,7 +14,9 @@ import type { ExcalidrawElement, ExcalidrawDocument, ShapeType } from "./types.j
 import { getTheme, type ThemeConfig } from "./themes.js";
 import { normalizeElement, createElement, createTextElement, buildAppState, textWidth } from "./normalize.js";
 import { ICONS, loadLibraryIcon } from "./library.js";
+import type { IconDef } from "./library.js";
 import { gridPosition } from "./layout/grid.js";
+import { Card, Section, Callout, type Component } from "./components.js";
 
 export interface BoxOptions {
   row?: number;
@@ -55,6 +57,16 @@ export class Diagram {
     this._cellH = opts.cellH ?? 80;
     this._gapX = opts.gapX ?? 40;
     this._gapY = opts.gapY ?? 50;
+  }
+
+  /** Resolve role-based colors. Falls back to shape palette cycling. */
+  private _resolveRoleColor(role?: string): [string, string] {
+    if (role && this.theme.roles && this.theme.roles[role]) {
+      return this.theme.roles[role];
+    }
+    const [stroke, bg] = this.theme.shapes[this._colorIdx % this.theme.shapes.length];
+    this._colorIdx++;
+    return [stroke, bg];
   }
 
   private _gridPos(index: number): { x: number; y: number } {
@@ -242,6 +254,142 @@ export class Diagram {
       x + 30 - textWidth(name, this.theme.fontSize) / 2,
       y + 80, this.theme.fontSize);
   }
+
+  // ── Semantic Components ──────────────────────────────────────
+
+  /** Add a semantic card — title + subtitle + optional icon. */
+  addCard(
+    id: string,
+    opts: {
+      title: string;
+      subtitle?: string;
+      icon?: string;
+      role?: string;
+      row?: number;
+      col?: number;
+      span?: number;
+      width?: number;
+      height?: number;
+    }
+  ): Component {
+    const idx = opts.row !== undefined && opts.col !== undefined
+      ? opts.row * this._cols + opts.col
+      : this._named.size;
+    const { x, y } = this._gridPos(idx);
+    const span = opts.span ?? 1;
+    const w = opts.width ?? (this._cellW + (span - 1) * (this._cellW + this._gapX));
+    const h = opts.height ?? this._cellH;
+
+    const [stroke, bg] = this._resolveRoleColor(opts.role);
+
+    let iconDef: IconDef | undefined;
+    if (opts.icon) {
+      iconDef = ICONS[opts.icon];
+      if (!iconDef) {
+        throw new Error(`Unknown icon "${opts.icon}". Available: ${Object.keys(ICONS).join(", ")}`);
+      }
+    }
+
+    const component = Card(x, y, w, h, opts.title, stroke, bg, this.theme, {
+      subtitle: opts.subtitle,
+      icon: iconDef,
+      role: opts.role,
+    });
+
+    this._named.set(id, component.primary);
+    this.elements.push(...component.elements);
+    return component;
+  }
+
+  /** Add a visual section — container frame with heading. */
+  addSection(
+    id: string,
+    opts: {
+      heading: string;
+      subtitle?: string;
+      role?: string;
+      row?: number;
+      col?: number;
+      span?: number;
+      width?: number;
+      height?: number;
+    }
+  ): Component {
+    const idx = opts.row !== undefined && opts.col !== undefined
+      ? opts.row * this._cols + opts.col
+      : this._named.size;
+    const { x, y } = this._gridPos(idx);
+    const span = opts.span ?? 1;
+    const w = opts.width ?? (this._cellW + (span - 1) * (this._cellW + this._gapX));
+    const h = opts.height ?? this._cellH;
+    if (h < 60) throw new Error(`Section "${id}" height must be ≥ 60px (got ${h}).`);
+
+    const [stroke, bg] = this._resolveRoleColor(opts.role);
+
+    const component = Section(x, y, w, h, opts.heading, stroke, bg, this.theme, {
+      subtitle: opts.subtitle,
+      role: opts.role,
+    });
+
+    this._named.set(id, component.primary);
+    this.elements.push(...component.elements);
+    return component;
+  }
+
+  /** Add a full-width callout — emphasis bar with icon + text. */
+  addCallout(
+    id: string,
+    opts: {
+      text: string;
+      icon?: string;
+      role?: string;
+      row?: number;
+      col?: number;
+      span?: number;
+    }
+  ): Component {
+    const idx = opts.row !== undefined && opts.col !== undefined
+      ? opts.row * this._cols + opts.col
+      : this._named.size;
+    const { x, y } = this._gridPos(idx);
+    const span = opts.span ?? this._cols;
+    const w = (this._cellW + this._gapX) * span - this._gapX;
+
+    const [stroke, bg] = this._resolveRoleColor(opts.role);
+
+    let iconDef: IconDef | undefined;
+    if (opts.icon) {
+      iconDef = ICONS[opts.icon];
+      if (!iconDef) {
+        throw new Error(`Unknown icon "${opts.icon}". Available: ${Object.keys(ICONS).join(", ")}`);
+      }
+    }
+
+    const component = Callout(x, y, w, opts.text, stroke, bg, this.theme, {
+      icon: iconDef,
+      role: opts.role,
+    });
+
+    this._named.set(id, component.primary);
+    this.elements.push(...component.elements);
+    return component;
+  }
+
+  /** Add a labeled transition arrow. Label is required — use addArrow() for unlabeled arrows. */
+  addTransition(
+    fromId: string,
+    toId: string,
+    opts: { label: string }
+  ): ExcalidrawElement {
+    if (!opts.label || opts.label.trim() === "") {
+      throw new Error(
+        `Transition from "${fromId}" to "${toId}" requires a narrative label. Use addArrow() for unlabeled arrows.`
+      );
+    }
+    return this.addArrow(fromId, toId, opts);
+  }
+
+  // ── Serialization ────────────────────────────────────────────
 
   /** Convert to a plain object (for JSON serialization). */
   toDocument(): ExcalidrawDocument {

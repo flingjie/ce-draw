@@ -118,4 +118,6 @@ export interface ThemeConfig {
   fontSize: number;
   fillStyle: FillStyle;
   strokeStyle: StrokeStyle;
+  /** Semantic role → [strokeColor, backgroundColor]. Compiled from tokens.yaml roles section. */
+  roles?: Record<string, [string, string]>;
 }

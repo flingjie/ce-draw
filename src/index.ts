@@ -31,6 +31,22 @@ export { normalize, normalizeElement, makeId } from "./normalize.js";
 export { ICONS, listIcons, loadLibraryIcon, listLibrary, listLibraries } from "./library.js";
 export type { IconDef } from "./library.js";
 
+// Components — semantic building blocks
+export {
+  Card,
+  Section,
+  Callout,
+  ProcessBox,
+  Annotation,
+  DecisionBox,
+  DataStore,
+  type Component,
+} from "./components.js";
+
+// Recipe system — template-driven diagram generation
+export { renderFromRecipe, loadTemplate } from "./recipe.js";
+export type { TemplateConfig, RecipeSlots, NarrativeSlots, Archetype } from "./recipe_types.js";
+
 // Layout engines + router
 export { routeLayout } from "./layout/router.js";
 export { dagreLayout, routeArrow } from "./layout/dagre.js";

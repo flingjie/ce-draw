@@ -10,6 +10,7 @@
 import type { ExcalidrawElement } from "./types.js";
 import { createElement, createTextElement, textWidth } from "./normalize.js";
 import type { ThemeConfig } from "./types.js";
+import type { IconDef } from "./library.js";
 
 // ── Component Interface ───────────────────────────────────────
 
@@ -22,6 +23,10 @@ export interface Component {
   cx: number;
   /** Center Y of the main shape. */
   cy: number;
+  /** Inner content area for child placement (Section returns this). */
+  bounds?: { x: number; y: number; width: number; height: number };
+  /** Semantic role for color resolution. */
+  role?: string;
 }
 
 // ── ProcessBox ────────────────────────────────────────────────
@@ -234,5 +239,241 @@ export function DataStore(
     primary: top,
     cx: x + w / 2,
     cy: y + h / 2,
+  };
+}
+
+// ── Card ────────────────────────────────────────────────────
+
+/**
+ * A semantic card — rectangle with title, subtitle, icon, and optional role.
+ * Evolved from ProcessBox. Use for: service boxes, concept items, process steps.
+ */
+export function Card(
+  x: number, y: number,
+  width: number, height: number,
+  title: string,
+  stroke: string, bg: string,
+  theme: ThemeConfig,
+  opts?: {
+    subtitle?: string;
+    icon?: IconDef;
+    role?: string;
+  }
+): Component {
+  const box = createElement("rectangle", {
+    x, y, width, height,
+    strokeColor: stroke, backgroundColor: bg,
+    fillStyle: theme.fillStyle,
+    strokeWidth: theme.strokeWidth,
+    roughness: theme.roughness,
+    roundness: theme.roundness,
+  });
+
+  const hasSubtitle = !!opts?.subtitle;
+  const hasIcon = !!opts?.icon;
+
+  let textOffsetX = 0;
+  const elements: ExcalidrawElement[] = [box];
+
+  // Icon on the left, vertically centered
+  if (hasIcon) {
+    const iconDef = opts!.icon!;
+    const iconY = y + (height - iconDef.height) / 2;
+    const iconEls = iconDef.render(x + 12, iconY, stroke, bg);
+    elements.push(...iconEls);
+    textOffsetX = iconDef.width + 8;
+  }
+
+  // Title — centered vertically in the remaining text area
+  const textAreaX = x + textOffsetX;
+  const textAreaW = width - textOffsetX;
+  const titleOffsetY = hasSubtitle ? 1.1 : 0.6;
+
+  const titleEl = createTextElement(
+    title,
+    textAreaX + textAreaW / 2 - textWidth(title, theme.fontSize) / 2,
+    y + height / 2 - theme.fontSize * titleOffsetY,
+    theme.fontSize,
+    theme.fontFamily,
+    box.id
+  );
+  titleEl.strokeColor = theme.text;
+  box.boundElements = [{ id: titleEl.id, type: "text" }];
+  elements.push(titleEl);
+
+  // Subtitle below title
+  if (hasSubtitle) {
+    const sub = createTextElement(
+      opts!.subtitle!,
+      textAreaX + textAreaW / 2 - textWidth(opts!.subtitle!, 12) / 2,
+      y + height / 2 + 2,
+      12, theme.fontFamily,
+      box.id
+    );
+    sub.strokeColor = theme.arrow;
+    box.boundElements!.push({ id: sub.id, type: "text" });
+    elements.push(sub);
+  }
+
+  return {
+    elements,
+    primary: box,
+    cx: x + width / 2,
+    cy: y + height / 2,
+    role: opts?.role,
+  };
+}
+
+// ── Section ──────────────────────────────────────────────────
+
+/**
+ * A visual section — container frame with heading and optional subtitle.
+ * Returns `bounds` for child card placement.
+ * Use for: grouping related cards, narrative zones, framework partitions.
+ */
+export function Section(
+  x: number, y: number,
+  width: number, height: number,
+  heading: string,
+  stroke: string, bg: string,
+  theme: ThemeConfig,
+  opts?: {
+    subtitle?: string;
+    role?: string;
+  }
+): Component {
+  if (height < 60) {
+    throw new Error(
+      `Section height must be ≥ 60px (got ${height}). Heading + padding require minimum space.`
+    );
+  }
+
+  // Frame — dashed border, distinct from Card
+  const frame = createElement("rectangle", {
+    x, y, width, height,
+    strokeColor: stroke, backgroundColor: bg,
+    fillStyle: "solid",
+    strokeWidth: theme.strokeWidth,
+    roughness: theme.roughness,
+    roundness: { type: 2 },
+    strokeStyle: "dashed",
+    opacity: 90,
+  });
+
+  const elements: ExcalidrawElement[] = [frame];
+
+  // Heading — bold, left-aligned inside frame
+  const headingEl = createTextElement(
+    heading,
+    x + 16,
+    y + 16,
+    theme.fontSize,
+    theme.fontFamily,
+    frame.id
+  );
+  headingEl.strokeColor = theme.text;
+  (headingEl as any).textAlign = "left";
+  frame.boundElements = [{ id: headingEl.id, type: "text" }];
+  elements.push(headingEl);
+
+  const hasSubtitle = !!opts?.subtitle;
+  const subtitleHeight = hasSubtitle ? 16 : 0;
+
+  // Subtitle below heading
+  if (hasSubtitle) {
+    const subEl = createTextElement(
+      opts!.subtitle!,
+      x + 16,
+      y + 38,
+      12, theme.fontFamily,
+      frame.id
+    );
+    subEl.strokeColor = theme.arrow;
+    (subEl as any).textAlign = "left";
+    frame.boundElements!.push({ id: subEl.id, type: "text" });
+    elements.push(subEl);
+  }
+
+  // Bounds: inner content area for child cards
+  const padX = 16;
+  const padY = 16;
+  const headingHeight = 24;
+  const topReserved = padY + headingHeight + subtitleHeight + 8;
+
+  return {
+    elements,
+    primary: frame,
+    cx: x + width / 2,
+    cy: y + height / 2,
+    bounds: {
+      x: x + padX,
+      y: y + topReserved,
+      width: width - 2 * padX,
+      height: height - topReserved - padY,
+    },
+    role: opts?.role,
+  };
+}
+
+// ── Callout ──────────────────────────────────────────────────
+
+/**
+ * A full-width emphasis bar — icon + bold text.
+ * Evolved from Annotation. Use for: key insights, warnings, bottom-line messages.
+ */
+export function Callout(
+  x: number, y: number,
+  width: number,
+  text: string,
+  stroke: string, bg: string,
+  theme: ThemeConfig,
+  opts?: {
+    icon?: IconDef;
+    role?: string;
+  }
+): Component {
+  const height = 48;
+
+  const rect = createElement("rectangle", {
+    x, y, width, height,
+    strokeColor: stroke, backgroundColor: bg,
+    fillStyle: "solid",
+    strokeWidth: theme.strokeWidth + 1,
+    roughness: theme.roughness,
+    roundness: { type: 2 },
+  });
+
+  const elements: ExcalidrawElement[] = [rect];
+
+  let textOffsetX = 0;
+  if (opts?.icon) {
+    const iconDef = opts.icon;
+    const iconY = y + (height - iconDef.height) / 2;
+    const iconEls = iconDef.render(x + 16, iconY, stroke, bg);
+    elements.push(...iconEls);
+    textOffsetX = iconDef.width + 8;
+  }
+
+  // Bold text, left-aligned
+  const textEl = createTextElement(
+    text,
+    x + 16 + textOffsetX,
+    y + 14,
+    theme.fontSize,
+    theme.fontFamily,
+    rect.id
+  );
+  textEl.strokeColor = theme.text;
+  (textEl as any).textAlign = "left";
+
+  rect.boundElements = [{ id: textEl.id, type: "text" }];
+  elements.push(textEl);
+
+  return {
+    elements,
+    primary: rect,
+    cx: x + width / 2,
+    cy: y + height / 2,
+    role: opts?.role,
   };
 }
