@@ -3,51 +3,65 @@
 Use when the user asks for a system architecture, service topology,
 infrastructure diagram, cloud architecture, or component diagram.
 
-## Mermaid Approach (Recommended)
+## JSON Descriptor Approach (Recommended for structured topology)
 
 ```ts
-import { mermaidToExcalidraw } from "ec-draw";
+import { renderDiagram } from "ec-draw";
 
-const mermaid = `
-flowchart TD
-    Users((Users)) --> CDN[CDN]
-    CDN --> LB[Load Balancer]
-    LB --> Web1[Web Server 1]
-    LB --> Web2[Web Server 2]
-    LB --> Web3[Web Server 3]
-    Web1 --> API[API Server]
-    Web2 --> API
-    Web3 --> API
-    API --> DB[(PostgreSQL)]
-    API --> Cache[(Redis)]
-    API --> Queue[(Message Queue)]
-`;
-mermaidToExcalidraw(mermaid, "professional");
-```
-
-### Mermaid Patterns for Architecture
-
-```
-flowchart TD
-    ((users))          Circle — external users/traffic
-    [load balancer]    Rectangle — infrastructure
-    [(database)]       Database cylinder — data stores
-    LR layout          Horizontal layout for network diagrams
+const doc = renderDiagram({
+  type: "flowchart",
+  direction: "TD",
+  nodes: [
+    { id: "Users", label: "Users", shape: "ellipse" },
+    { id: "CDN", label: "CDN" },
+    { id: "LB", label: "Load Balancer" },
+    { id: "Web1", label: "Web Server 1" },
+    { id: "Web2", label: "Web Server 2" },
+    { id: "Web3", label: "Web Server 3" },
+    { id: "API", label: "API Server" },
+    { id: "DB", label: "PostgreSQL" },
+    { id: "Cache", label: "Redis" },
+    { id: "Queue", label: "Message Queue" },
+  ],
+  edges: [
+    { from: "Users", to: "CDN" },
+    { from: "CDN", to: "LB" },
+    { from: "LB", to: "Web1" },
+    { from: "LB", to: "Web2" },
+    { from: "LB", to: "Web3" },
+    { from: "Web1", to: "API" },
+    { from: "Web2", to: "API" },
+    { from: "Web3", to: "API" },
+    { from: "API", to: "DB" },
+    { from: "API", to: "Cache" },
+    { from: "API", to: "Queue" },
+  ],
+}, "professional");
 ```
 
 ### Horizontal (network) layout
 
 ```ts
-const mermaid = `
-flowchart LR
-    Browser[Browser] --> Firewall{Firewall}
-    Firewall --> LB[Load Balancer]
-    LB --> App1[App 1]
-    LB --> App2[App 2]
-    App1 --> DB[(Database)]
-    App2 --> DB
-`;
-mermaidToExcalidraw(mermaid, "professional");
+const doc = renderDiagram({
+  type: "flowchart",
+  direction: "LR",
+  nodes: [
+    { id: "Browser", label: "Browser" },
+    { id: "Firewall", label: "Firewall", shape: "diamond" },
+    { id: "LB", label: "Load Balancer" },
+    { id: "App1", label: "App 1" },
+    { id: "App2", label: "App 2" },
+    { id: "DB", label: "Database" },
+  ],
+  edges: [
+    { from: "Browser", to: "Firewall" },
+    { from: "Firewall", to: "LB" },
+    { from: "LB", to: "App1" },
+    { from: "LB", to: "App2" },
+    { from: "App1", to: "DB" },
+    { from: "App2", to: "DB" },
+  ],
+}, "professional");
 ```
 
 ## Diagram Builder Approach (for layered architectures)
@@ -89,5 +103,5 @@ d.save("layered_arch.excalidraw");
 - `professional` theme for clean, document-ready architecture diagrams
 - Top-to-bottom flows: entry at top, data at bottom
 - Span wide boxes across columns with `span: N`
-- `[(label)]` = database cylinder in Mermaid
-- Check `library/icons.json` for common infra shapes
+- Use `d.addIcon("database", x, y)` for database visuals
+- Check `library/` for common infra icons (Google Cloud, AWS shapes)

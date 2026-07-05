@@ -1,6 +1,6 @@
 # ec-draw
 
-通过 AI 生成高质量 Excalidraw 手绘风格图表。将 Mermaid 语法转换为主题化的 `.excalidraw` 文件。
+通过 AI 生成高质量 Excalidraw 手绘风格图表。支持 Diagram API（编程式）和 JSON 描述（声明式）两种模式。
 
 ## 对话方式使用
 
@@ -8,14 +8,7 @@
 
 > "画一个用户登录的流程图，包含验证和错误处理"
 
-AI 会自动：
-1. 生成 Mermaid 语法
-2. 调用 `node dist/cli.js mermaid` 渲染
-3. 返回 `.excalidraw` 文件
-
-**或者用 Mermaid 语法：**
-
-> "用 flowchart TD 画：Login → Valid? → {Yes} Dashboard / {No} Error → Login"
+AI 会自动生成 Diagram API 脚本并调用 `node dist/cli.js run` 渲染。
 
 **架构图：**
 
@@ -30,8 +23,16 @@ npm install ec-draw
 ## CLI
 
 ```bash
-node dist/cli.js mermaid diagram.mmd -o output.excalidraw -t sketchy
-echo "flowchart TD\n  A[开始] --> B[结束]" | node dist/cli.js mermaid - -o flow.excalidraw
+# JS 脚本模式（使用 Diagram API）
+node dist/cli.js run diagram.js -o output.excalidraw -t sketchy
+
+# JSON 描述模式（声明式）
+node dist/cli.js render diagram.json -o output.excalidraw
+
+# 查询工具
+node dist/cli.js --list-themes
+node dist/cli.js --list-icons
+node dist/cli.js --list-libraries
 ```
 
 ## 主题
@@ -45,12 +46,12 @@ echo "flowchart TD\n  A[开始] --> B[结束]" | node dist/cli.js mermaid - -o f
 
 ## 支持的图表类型
 
-| 类型 | Mermaid 语法 | 示例 |
-|------|-------------|------|
-| 流程图 | `flowchart TD/LR` | 决策树、流程 |
-| 序列图 | `sequenceDiagram` | API 交互 |
-| ER 图 | `erDiagram` | 数据模型 |
-| 类图 | `classDiagram` | UML |
+| 类型 | 引擎 | 说明 |
+|------|------|------|
+| 流程图 | dagre | 决策树、流程（JSON 声明式） |
+| 序列图 | sequence | API 交互 |
+| 架构图 | grid | 服务拓扑（Diagram API） |
+| 管线图 | pipeline | CI/CD 阶段 |
 
 ## 项目结构
 
@@ -58,22 +59,30 @@ echo "flowchart TD\n  A[开始] --> B[结束]" | node dist/cli.js mermaid - -o f
 ec-draw/
 ├── SKILL.md              Skill 定义
 ├── src/                  TypeScript 库
-│   ├── mermaid.ts        Mermaid 解析 + dagre 布局
 │   ├── diagram.ts        Diagram Builder API
-│   ├── normalize.ts      风格统一
+│   ├── render.ts         JSON → Excalidraw 渲染器
+│   ├── normalize.ts      元素工厂 + 风格归一化
 │   ├── themes.ts         4 套主题
 │   ├── library.ts        图标库
+│   ├── components.ts     语义组件
+│   ├── token_compiler.ts 设计 Token 编译
+│   ├── types.ts          类型定义
 │   └── cli.ts            CLI 入口
-├── templates/            Prompt 模板
-├── references/           Mermaid/excalidraw 格式参考
+├── src/layout/           布局引擎
+│   ├── dagre.ts          dagre 自动布局
+│   ├── grid.ts           网格布局
+│   ├── sequence.ts       序列图布局
+│   ├── pipeline.ts       管线布局
+│   └── router.ts         智能路由
+├── templates/            模板
 ├── examples/             示例 .excalidraw 文件
 └── library/              图标预设
 ```
 
 ## 文档
 
-- [架构说明](docs/architecture.md) — 数据流、模块设计、扩展指南
-- [API 参考](docs/api.md) — 完整 API 文档（mermaidToExcalidraw / Diagram / 主题 / 图标）
+- [架构说明](docs/architecture.md) — 数据流、模块设计
+- [API 参考](docs/api.md) — Diagram API / renderDiagram / 主题 / 图标
 
 ## License
 

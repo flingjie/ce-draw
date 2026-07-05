@@ -4,7 +4,8 @@
  * Use this for freeform layouts (architecture diagrams, whiteboard sketches)
  * where you need full control over element placement.
  *
- * For structured diagrams (flowcharts, sequences, ER), prefer mermaidToExcalidraw().
+ * For structured diagrams (flowcharts, sequences, ER), prefer renderDiagram()
+ * with JSON descriptors and automatic layout.
  */
 
 import { writeFileSync } from "fs";

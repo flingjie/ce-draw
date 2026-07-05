@@ -3,52 +3,66 @@
 Use when the user asks for a flowchart, process diagram, decision tree,
 state machine, or workflow.
 
-## Mermaid Approach (Recommended)
+## JSON Descriptor Approach (Recommended for structured flows)
 
 ```ts
-import { mermaidToExcalidraw } from "ec-draw";
+import { renderDiagram } from "ec-draw";
 
-const mermaid = `
-flowchart TD
-    Start[Start] --> Input[Get Input]
-    Input --> Validate{Valid?}
-    Validate -->|Yes| Process[Process]
-    Validate -->|No| Error[Show Error]
-    Process --> End[End]
-    Error --> Input
-`;
-
-doc = mermaidToExcalidraw(mermaid, "sketchy");
+const doc = renderDiagram({
+  type: "flowchart",
+  direction: "TB",
+  nodes: [
+    { id: "Start", label: "Start", shape: "rectangle" },
+    { id: "Input", label: "Get Input", shape: "rectangle" },
+    { id: "Validate", label: "Valid?", shape: "diamond" },
+    { id: "Process", label: "Process", shape: "rectangle" },
+    { id: "Error", label: "Show Error", shape: "rectangle" },
+    { id: "End", label: "End", shape: "ellipse" },
+  ],
+  edges: [
+    { from: "Start", to: "Input" },
+    { from: "Input", to: "Validate" },
+    { from: "Validate", to: "Process", label: "Yes" },
+    { from: "Validate", to: "Error", label: "No" },
+    { from: "Process", to: "End" },
+    { from: "Error", to: "Input" },
+  ],
+}, "sketchy");
 ```
 
-### Mermaid Flowchart Syntax
+### Supported shapes
 
-```
-flowchart TD              Top→Down (also TB, LR, RL, BT)
-    A[rectangle label]    Rectangle
-    B{diamond label}      Diamond (decision)
-    C((circle label))     Circle/ellipse
-    D[(database label)]   Database cylinder
-    A --> B               Arrow
-    A -->|label| B        Labeled arrow
-    A -.-> B              Dotted
-    A ==> B               Thick
-```
+| shape | visual |
+|-------|--------|
+| `rectangle` | Rectangle (default) |
+| `diamond` | Diamond (decisions) |
+| `ellipse` | Ellipse (start/end) |
+| `roundrect` | Rounded rectangle |
 
 ### Branching Flow
 
 ```ts
-const mermaid = `
-flowchart TD
-    Start[Start] --> Check{Type?}
-    Check -->|A| HandleA[Handle A]
-    Check -->|B| HandleB[Handle B]
-    Check -->|C| HandleC[Handle C]
-    HandleA --> Merge[Done]
-    HandleB --> Merge
-    HandleC --> Merge
-`;
-mermaidToExcalidraw(mermaid, "sketchy");
+const doc = renderDiagram({
+  type: "flowchart",
+  direction: "TB",
+  nodes: [
+    { id: "Start", label: "Start" },
+    { id: "Check", label: "Type?", shape: "diamond" },
+    { id: "HandleA", label: "Handle A" },
+    { id: "HandleB", label: "Handle B" },
+    { id: "HandleC", label: "Handle C" },
+    { id: "Done", label: "Done" },
+  ],
+  edges: [
+    { from: "Start", to: "Check" },
+    { from: "Check", to: "HandleA", label: "A" },
+    { from: "Check", to: "HandleB", label: "B" },
+    { from: "Check", to: "HandleC", label: "C" },
+    { from: "HandleA", to: "Done" },
+    { from: "HandleB", to: "Done" },
+    { from: "HandleC", to: "Done" },
+  ],
+}, "sketchy");
 ```
 
 ## Diagram Builder Approach (for custom layouts)
@@ -70,6 +84,7 @@ d.save("flowchart.excalidraw");
 ```
 
 ## Tips
-- Decision nodes: use `{label}` in Mermaid, `shape: "diamond"` in the builder
+- Decision nodes: use `shape: "diamond"` in both approaches
 - `cols: 1` for vertical flows, `cols > 1` for branching
 - Keep labels short (≤20 chars) to avoid overlap
+- Use `direction: "LR"` for horizontal flows

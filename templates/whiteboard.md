@@ -3,27 +3,7 @@
 Use when the user asks for a freeform sketch, whiteboard, brainstorm,
 rough idea, or comparison diagram.
 
-## Mermaid Approach
-
-Mermaid works for structured whiteboard content like mind-map-style flows:
-
-```ts
-import { mermaidToExcalidraw } from "ec-draw";
-
-const mermaid = `
-flowchart TD
-    Core[Core Problem] --> Idea1[Solution A]
-    Core --> Idea2[Solution B]
-    Core --> Idea3[Solution C]
-    Idea1 --> Tradeoff1[Cost: High]
-    Idea1 --> Tradeoff2[Speed: Fast]
-    Idea2 --> Tradeoff3[Cost: Low]
-    Idea2 --> Tradeoff4[Speed: Slow]
-`;
-mermaidToExcalidraw(mermaid, "sketchy");
-```
-
-## Diagram Builder Approach (for freeform layouts)
+## Diagram Builder Approach
 
 ```ts
 import { Diagram } from "ec-draw";
@@ -58,6 +38,36 @@ d.addBox("Option B\n\n✓ Scalable\n✓ Flexible\n✗ Complex setup", { row: 0, 
 d.addBox("Decision: Start with A, migrate when needed", { row: 1, col: 0, span: 2, height: 60 });
 
 d.save("comparison.excalidraw");
+```
+
+### Mind Map via JSON Descriptor
+
+```ts
+import { renderDiagram } from "ec-draw";
+
+const doc = renderDiagram({
+  type: "flowchart",
+  direction: "TD",
+  nodes: [
+    { id: "Core", label: "Core Problem" },
+    { id: "Idea1", label: "Solution A" },
+    { id: "Idea2", label: "Solution B" },
+    { id: "Idea3", label: "Solution C" },
+    { id: "Cost1", label: "Cost: High" },
+    { id: "Speed1", label: "Speed: Fast" },
+    { id: "Cost2", label: "Cost: Low" },
+    { id: "Speed2", label: "Speed: Slow" },
+  ],
+  edges: [
+    { from: "Core", to: "Idea1" },
+    { from: "Core", to: "Idea2" },
+    { from: "Core", to: "Idea3" },
+    { from: "Idea1", to: "Cost1" },
+    { from: "Idea1", to: "Speed1" },
+    { from: "Idea2", to: "Cost2" },
+    { from: "Idea2", to: "Speed2" },
+  ],
+}, "sketchy");
 ```
 
 ## Tips

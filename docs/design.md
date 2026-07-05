@@ -2,13 +2,25 @@
 
 ## Architecture Decisions
 
-### Pipeline: Mermaid → Dagre → Normalize → Theme → Excalidraw
+### Pipeline: Layout → Normalize → Theme → Excalidraw
 
-1. Parse Mermaid text into AST
-2. Layout with dagre (directed graph layout engine)
+1. Create nodes and edges (via Diagram API or JSON descriptor)
+2. Layout with router (dagre/grid/pipeline/sequence)
 3. Normalize: apply consistent roughness, font, stroke
 4. Theme: map semantic roles to visual styles
 5. Output: write .excalidraw JSON
+
+### Two Entry Points
+
+**Diagram API** — programmatic grid-based positioning:
+```
+new Diagram() → addBox/addArrow → normalize → .excalidraw
+```
+
+**JSON Descriptor** — declarative with auto-layout:
+```
+renderDiagram({type, nodes, edges}) → routeLayout() → buildShapes → .excalidraw
+```
 
 ### Why dagre?
 

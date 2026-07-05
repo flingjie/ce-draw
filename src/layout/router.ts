@@ -3,7 +3,7 @@
  * Dispatches to dagre, grid, or pipeline based on type + options.
  *
  * Sequence diagrams: the router returns dagre positions (for participant boxes);
- * the caller in mermaid.ts layers on sequenceLayout() with message positions.
+ * the caller layers on sequence layout with message positions.
  */
 
 import type { LayoutNode, LayoutEdge, LayoutOptions, LayoutResult } from "./types.js";

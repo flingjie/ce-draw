@@ -1,0 +1,14 @@
+{
+  "type": "flowchart",
+  "direction": "TB",
+  "theme": "sketchy",
+  "nodes": [
+    { "id": "A", "label": "Start", "shape": "rectangle" },
+    { "id": "B", "label": "Process", "shape": "rectangle" },
+    { "id": "C", "label": "End", "shape": "ellipse" }
+  ],
+  "edges": [
+    { "from": "A", "to": "B", "label": "go" },
+    { "from": "B", "to": "C" }
+  ]
+}

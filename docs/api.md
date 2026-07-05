@@ -1,43 +1,76 @@
 # API 参考
 
-## Mermaid API
+## JSON Descriptor API
 
-### mermaidToExcalidraw()
+### renderDiagram()
 
 ```ts
-import { mermaidToExcalidraw } from "ec-draw";
+import { renderDiagram } from "ec-draw";
 
-function mermaidToExcalidraw(
-  mermaidText: string,
+function renderDiagram(
+  diagram: JSONDiagram,
   themeName?: string  // "sketchy" | "professional" | "dark" | "colorful" 默认 "sketchy"
 ): ExcalidrawDocument
 ```
 
-将 Mermaid 语法转换为主题化的 Excalidraw 文档。内部使用 dagre 布局引擎自动计算节点位置。
+将 JSON 描述转换为主题化的 Excalidraw 文档。内部使用 layout router 自动选择最佳布局引擎。
 
 **示例：**
 
 ```ts
-const doc = mermaidToExcalidraw(`
-flowchart TD
-    A[Login] --> B{Valid?}
-    B -->|Yes| C[Dashboard]
-    B -->|No| D[Error]
-`, "sketchy");
+const doc = renderDiagram({
+  type: "flowchart",
+  direction: "TB",
+  nodes: [
+    { id: "A", label: "Login", shape: "rectangle" },
+    { id: "B", label: "Valid?", shape: "diamond" },
+    { id: "C", label: "Dashboard", shape: "rectangle" },
+    { id: "D", label: "Error", shape: "rectangle" },
+  ],
+  edges: [
+    { from: "A", to: "B" },
+    { from: "B", to: "C", label: "Yes" },
+    { from: "B", to: "D", label: "No" },
+  ],
+}, "sketchy");
 
-// doc 是完整的 ExcalidrawDocument，可直接序列化
-import { writeFileSync } from "fs";
 writeFileSync("flow.excalidraw", JSON.stringify(doc, null, 2));
 ```
 
-**支持的 Mermaid 类型：**
+### JSONDiagram 结构
 
-| 类型 | 语法 | 说明 |
+```ts
+interface JSONDiagram {
+  type: string;         // "flowchart" | "sequence" | "er" | "class" | "pipeline" | "workflow" | "architecture" | "arch"
+  direction?: "TB" | "LR" | "RL" | "BT";
+  theme?: string;
+  nodes: JSONNode[];
+  edges: JSONEdge[];
+}
+
+interface JSONNode {
+  id: string;
+  label: string;
+  shape?: "rectangle" | "diamond" | "ellipse" | "roundrect";
+}
+
+interface JSONEdge {
+  from: string;
+  to: string;
+  label?: string;
+}
+```
+
+**支持的 type → 布局引擎：**
+
+| type | 引擎 | 说明 |
 |------|------|------|
-| Flowchart | `flowchart TD/LR` | 流程图、决策树 |
-| Sequence | `sequenceDiagram` | 序列图、API 交互 |
-| ER Diagram | `erDiagram` | 实体关系图 |
-| Class Diagram | `classDiagram` | UML 类图 |
+| `flowchart` | dagre | 流程图、决策树 |
+| `sequence` | dagre + 序列叠加 | 序列图 |
+| `er` | dagre | 实体关系图 |
+| `class` | dagre | UML 类图 |
+| `pipeline` / `workflow` | pipeline | 管线/工作流 |
+| `architecture` / `arch` | grid | 架构网格图 |
 
 ---
 
@@ -119,10 +152,23 @@ d.addIcon(iconName: string, x: number, y: number, colorIndex?: number): void
 
 从图标库放置一个图标。
 
-**可用图标：** `database`, `server`, `cloud`, `user`, `gear`, `document`, `globe`, `mobile`, `lock`, `fire`
+**可用图标：** `database`, `server`, `cloud`, `user`, `gear`, `document`, `globe`, `mobile`, `lock`, `fire`, `message_queue`, `firewall`
 
 ```ts
 d.addIcon("database", 200, 100, 0);  // (x, y, 颜色索引)
+```
+
+### addLibraryIcon()
+
+```ts
+d.addLibraryIcon(libraryName: string, iconName: string, x: number, y: number, colorIndex?: number): void
+```
+
+从外部 .excalidrawlib 库放置图标。
+
+```ts
+d.addLibraryIcon("google-icons", "Compute Engine", 200, 100);
+d.addLibraryIcon("stick-figures", "Stick man", 300, 200);
 ```
 
 ### save()
@@ -203,4 +249,20 @@ createElement(type, overrides)       // 创建基础元素
 createTextElement(text, x, y, fs, ff, containerId)  // 创建文本元素
 makeId()                             // 生成元素 ID
 textWidth(content, fontSize)         // 估算文本宽度 (CJK=1.0×, ASCII=0.6×)
+```
+
+---
+
+## 布局引擎
+
+```ts
+import { routeLayout, dagreLayout, gridLayout, pipelineLayout, sequenceLayout } from "ec-draw";
+
+// 自动路由
+routeLayout("flowchart", nodes, edges, { direction: "TB" });
+
+// 直接调用
+dagreLayout(nodes, edges, { direction: "TB" });
+gridLayout(nodes, edges, { cols: 4 });
+pipelineLayout(nodes, edges, { direction: "LR" });
 ```

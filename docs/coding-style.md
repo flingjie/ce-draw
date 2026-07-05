@@ -11,9 +11,9 @@
 
 | Kind | Convention | Example |
 |---|---|---|
-| Files | kebab-case | `mermaid.ts`, `normalize.ts` |
+| Files | kebab-case | `render.ts`, `normalize.ts` |
 | Types | PascalCase | `ExcalidrawElement` |
-| Functions | camelCase | `mermaidToExcalidraw` |
+| Functions | camelCase | `renderDiagram` |
 | Constants | UPPER_SNAKE | `DEFAULT_MARGIN` |
 
 ## Patterns
@@ -27,6 +27,6 @@
 ## Anti-patterns
 
 - ❌ Hardcoded colors outside themes.ts
-- ❌ Mermaid-specific logic in normalize.ts
+- ❌ Render-specific logic in normalize.ts
 - ❌ Changing icon IDs after release
 - ❌ Skipping normalize step in render pipeline

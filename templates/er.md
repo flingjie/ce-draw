@@ -3,57 +3,48 @@
 Use when the user asks for an ER diagram, data model, database schema,
 entity relationship, or table relationship diagram.
 
-## Mermaid Approach (Recommended)
+## JSON Descriptor Approach
 
 ```ts
-import { mermaidToExcalidraw } from "ec-draw";
+import { renderDiagram } from "ec-draw";
 
-const mermaid = `
-erDiagram
-    CUSTOMER ||--o{ ORDER : places
-    ORDER ||--|{ LINE_ITEM : contains
-    PRODUCT ||--o{ LINE_ITEM : includes
-    CUSTOMER {
-        int id PK
-        string name
-        string email
-    }
-    ORDER {
-        int id PK
-        date created_at
-        string status
-        int customer_id FK
-    }
-    PRODUCT {
-        int id PK
-        string name
-        float price
-    }
-`;
-mermaidToExcalidraw(mermaid, "professional");
+const doc = renderDiagram({
+  type: "er",
+  nodes: [
+    { id: "CUSTOMER", label: "CUSTOMER" },
+    { id: "ORDER", label: "ORDER" },
+    { id: "PRODUCT", label: "PRODUCT" },
+    { id: "LINE_ITEM", label: "LINE_ITEM" },
+  ],
+  edges: [
+    { from: "CUSTOMER", to: "ORDER", label: "places (1:N)" },
+    { from: "ORDER", to: "LINE_ITEM", label: "contains (1:N)" },
+    { from: "PRODUCT", to: "LINE_ITEM", label: "includes (1:N)" },
+  ],
+}, "professional");
 ```
 
-### Mermaid ER Cardinality
+## Diagram Builder Approach
 
-| Symbol | Meaning |
-|--------|---------|
-| `\|\|` | exactly one |
-| `}\|` | one or more |
-| `\|o` | zero or one |
-| `o{` | zero or more |
+```ts
+import { Diagram } from "ec-draw";
 
-### Relationship Patterns
+const d = new Diagram("professional", { cols: 4, cellW: 160, cellH: 60, gapX: 40, gapY: 80 });
 
-```
-erDiagram
-    A ||--|| B : one-to-one
-    A ||--o{ B : one-to-many
-    A }o--o{ B : many-to-many
-    A ||--o| B : one-to-zero-or-one
+d.addBox("CUSTOMER", { row: 0, col: 0 });
+d.addBox("ORDER", { row: 0, col: 2 });
+d.addBox("PRODUCT", { row: 2, col: 0 });
+d.addBox("LINE_ITEM", { row: 1, col: 1 });
+
+d.addArrow("CUSTOMER", "ORDER", { label: "1:N" });
+d.addArrow("ORDER", "LINE_ITEM", { label: "1:N" });
+d.addArrow("PRODUCT", "LINE_ITEM", { label: "1:N" });
+
+d.save("er.excalidraw");
 ```
 
 ## Tips
-- Entity names should be singular: `USER` not `USERS`
-- Mark PK (primary key) and FK (foreign key) in attribute types
-- Attributes render below the entity box automatically
+- Entity names should be singular: `CUSTOMER` not `CUSTOMERS`
+- Add relationship labels showing cardinality (`1:N`, `N:M`, etc.)
 - Use `professional` for formal data models, `sketchy` for whiteboarding
+- Use `d.addIcon("database", x, y)` for compact entity representation

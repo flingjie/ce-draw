@@ -3,13 +3,7 @@
  *
  * Main entry point. Two primary workflows:
  *
- * 1. Mermaid → Excalidraw (recommended for structured diagrams):
- *    ```ts
- *    import { mermaidToExcalidraw } from "ec-draw";
- *    const doc = mermaidToExcalidraw("flowchart TD\n  A --> B", "sketchy");
- *    ```
- *
- * 2. Programmatic API (for custom layouts):
+ * 1. Programmatic API (for custom layouts):
  *    ```ts
  *    import { Diagram } from "ec-draw";
  *    const d = new Diagram("sketchy");
@@ -17,10 +11,21 @@
  *    d.addArrow("API Gateway", "Auth Service");
  *    d.save("arch.excalidraw");
  *    ```
+ *
+ * 2. JSON descriptor (for declarative structured diagrams):
+ *    ```ts
+ *    import { renderDiagram } from "ec-draw";
+ *    const doc = renderDiagram({
+ *      type: "flowchart",
+ *      nodes: [{ id: "A", label: "Start" }, { id: "B", label: "End" }],
+ *      edges: [{ from: "A", to: "B" }]
+ *    }, "sketchy");
+ *    ```
  */
 
-export { mermaidToExcalidraw } from "./mermaid.js";
 export { Diagram } from "./diagram.js";
+export { renderDiagram } from "./render.js";
+export type { JSONNode, JSONEdge, JSONDiagram } from "./render.js";
 export { getTheme, listThemes, THEMES } from "./themes.js";
 export { normalize, normalizeElement, makeId } from "./normalize.js";
 export { ICONS, listIcons, loadLibraryIcon, listLibrary, listLibraries } from "./library.js";

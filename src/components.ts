@@ -2,7 +2,7 @@
  * Semantic components — higher-level diagram elements that wrap raw
  * Excalidraw elements with semantic meaning.
  *
- * Components are the bridge between Mermaid syntax and rendered output.
+ * Components are semantic building blocks for diagram elements.
  * Instead of creating raw rectangles for every node, components provide
  * typed, styled, and positioned element groups.
  */

@@ -1,7 +1,7 @@
 {
   "name": "ec-draw",
   "version": "1.0.0",
-  "description": "AI-powered Excalidraw diagram generator — Mermaid to hand-drawn Excalidraw with themed styling",
+  "description": "AI-powered Excalidraw diagram generator — themed hand-drawn diagrams from JS scripts or JSON descriptors",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -10,7 +10,6 @@
   },
   "files": [
     "dist",
-    "agents",
     "templates",
     "library"
   ],
@@ -30,7 +29,6 @@
   },
   "keywords": [
     "excalidraw",
-    "mermaid",
     "diagram",
     "flowchart",
     "hand-drawn",
