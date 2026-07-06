@@ -16,9 +16,14 @@ export type { ThemeConfig };
 // ── Default semantic roles (fallback when tokens.yaml unavailable) ─
 
 const DEFAULT_ROLES: Record<string, [string, string]> = {
+  // Semantic roles (concept-level)
   map:       ["#2563EB", "#DBEAFE"], // blue — mental models, prompts
   territory: ["#059669", "#D1FAE5"], // green — codebase, constraints
   unknown:   ["#D97706", "#FEF3C7"], // amber — gaps, unknowns, risks
+  // Template roles (used by recipe templates)
+  primary:   ["#1E3A5F", "#B8D4F0"], // slate — main concept
+  secondary: ["#2D5A27", "#C5E8C0"], // moss — counterpart
+  gap:       ["#8B4513", "#F5D5B8"], // brown — unknowns, blind spots
   callout:   ["#D97706", "#FEF3C7"], // amber — emphasis, bottom-line
   muted:     ["#9CA3AF", "#F3F4F6"], // neutral — secondary, background
 };

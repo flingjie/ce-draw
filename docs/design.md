@@ -43,7 +43,7 @@ This ensures themes only control color, not structure.
 
 ## Constraint System
 
-All prompts follow these constraints (enforced by `AGENTS.md`):
+All prompts follow these constraints (enforced by `SKILL.md`):
 
 - Max 5 colors per diagram
 - 120px margin on all sides

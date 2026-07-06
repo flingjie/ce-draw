@@ -13,9 +13,19 @@ Generate themed `.excalidraw` files by filling a template's content slots and ca
 ## Workflow
 
 1. **Pick a template** — Read the matching template from `templates/` for the diagram type the user wants:
+
+   **Recipe-ready (YAML frontmatter, use with `renderFromRecipe`):**
    - `templates/narrative-framework.md` — concept diagrams, frameworks, mental models
-   - `templates/flowchart.md` — decision trees, process flows (coming soon in recipe format)
-   - `templates/architecture.md` — system topology diagrams (coming soon in recipe format)
+
+   **Informational (use as pattern references with Diagram API or JSON descriptors):**
+   - `templates/flowchart.md` — decision trees, process flows
+   - `templates/architecture.md` — system topology, service diagrams
+   - `templates/sequence.md` — API flows, message passing
+   - `templates/er.md` — entity-relationship, class diagrams
+   - `templates/comparison.md` — A vs B, side-by-side comparisons
+   - `templates/before-after-gap.md` — problem → gap → solution narratives
+   - `templates/layered-explainer.md` — what → how → why depth layers
+   - `templates/whiteboard.md` — freeform sketches, brainstorming
 
 2. **Fill the slots** — Each template defines a `## Slots` section. Fill in the content (headings, items, icons, labels) based on what the user asked for. Templates define grid, colors, and layout — do NOT include coordinates or hex colors in your slots.
 
